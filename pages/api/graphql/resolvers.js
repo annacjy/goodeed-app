@@ -1,8 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-require('dotenv').config();
-
 const { BCRYPT_SALT_ROUNDS, JWT_SECRET_KEY } = process.env;
 
 // TODO: separate resolvers and TypeDefs into "modules" (user, posts, chat)
@@ -16,8 +14,15 @@ const resolvers = {
           return data.users;
         });
     },
+    posts: async (_parent, _args, { db }, _info) => {
+      return await db
+        .collection('posts')
+        .find()
+        .toArray();
+    },
   },
   Mutation: {
+    // <---- AUTHENTICATION ---->
     register: async (_parent, args, { db }, _info) => {
       const { username, password } = args;
 
@@ -59,7 +64,7 @@ const resolvers = {
           return jwt.verify(token, JWT_SECRET_KEY, (error, decoded) => {
             return error
               ? { status: { ok: false, message: 'Something went wrong. Please try again' } }
-              : { status: { ok: true }, token, username };
+              : { status: { ok: true }, token, username: decoded.username };
           });
         } else {
           return { status: { ok: false, message: 'Invalid password.' } };
@@ -67,6 +72,32 @@ const resolvers = {
       } catch (error) {
         return { status: { ok: false, message: error } };
       }
+    },
+
+    // <---- POSTS ---->
+    createPost: async (_parent, args, { db, loggedUser }, _info) => {
+      const { text, createdAt } = args;
+
+      const Posts = db.collection('posts');
+      const Users = db.collection('users');
+
+      const userPayload = await Users.findOne({ username: loggedUser.username });
+
+      const newPost = {
+        content: {
+          text,
+          user: {
+            username: userPayload.username,
+          },
+          createdAt,
+        },
+        status: 'TO_BORROW',
+        comments: [],
+      };
+
+      await Posts.insertOne(newPost);
+
+      return newPost;
     },
   },
 };

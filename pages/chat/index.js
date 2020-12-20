@@ -4,6 +4,7 @@ import io from 'socket.io-client';
 import NoSsr from 'components/NoSsr';
 import Input from 'components/Input';
 import Button from 'components/Button';
+import withLayout from 'components/Layout';
 import ChatBubble from 'components/ChatBubble';
 
 function Chat() {
@@ -39,13 +40,16 @@ function Chat() {
     socket.emit('emitMessage', message);
   };
 
+  const timeStamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+
+  // TODO: loop through an array of message objects, local style left and right
   return (
     <NoSsr>
-      <ChatBubble content={received} />
+      <ChatBubble content={received} position="right" timeStamp={timeStamp} />
       <Input name="Message" type="text" onInputChange={val => setMessage(val)} />
       <Button name="Send" onButtonClick={sendMessage} />
     </NoSsr>
   );
 }
 
-export default Chat;
+export default withLayout(Chat);

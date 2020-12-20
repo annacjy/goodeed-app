@@ -11,7 +11,7 @@ const socketHandler = (req, res) => {
       console.log(socket.id + ' ==== connected');
 
       // socket.on('join', roomName => {
-      //   let split = roomName.split('&');
+      //   let split = roomName.split('--with--');
       //   let unique = [...new Set(split)].sort((a, b) => (a < b ? -1 : 1));
       //   let updatedRoomName = unique.join('');
 

@@ -5,8 +5,6 @@ import resolvers from './resolvers';
 import typeDefs from './TypeDef';
 import jwt from 'jsonwebtoken';
 
-require('dotenv').config();
-
 const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
