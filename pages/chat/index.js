@@ -1,36 +1,51 @@
 import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
-function Chat() {
-  const [message, setMessage] = useState('');
+import NoSsr from 'components/NoSsr';
+import Input from 'components/Input';
+import Button from 'components/Button';
+import ChatBubble from 'components/ChatBubble';
 
-  // TODO: check how to exectue this on server side as well
-  if (process.browser) {
-    console.log('client');
-  }
+function Chat() {
+  const [socket, setSocket] = useState(null);
+  const [message, setMessage] = useState('');
+  const [received, setReceived] = useState('');
 
   useEffect(() => {
-    const socket = io.connect('http://localhost:3000');
+    const socketIo = io.connect('http://localhost:3000');
 
-    socket.emit('hello', 'hello world its working');
+    setSocket(socketIo);
 
-    socket.on('onMessage', msg => setMessage(msg));
+    function cleanup() {
+      socketIo.disconnect();
+    }
+    return cleanup;
 
-    console.log('useeffect triggered?');
+    // should only run once and not on every re-render,
+    // so pass an empty array
   }, []);
 
-  return <div>{message}</div>;
+  useEffect(async () => {
+    await fetch('/api/socket');
+    // socket.on('join', 'a&b');
+    if (socket) {
+      socket.on('onMessage', msg => setReceived(msg));
+    }
+
+    console.log('useeffect triggered');
+  }, [socket]);
+
+  const sendMessage = () => {
+    socket.emit('emitMessage', message);
+  };
+
+  return (
+    <NoSsr>
+      <ChatBubble content={received} />
+      <Input name="Message" type="text" onInputChange={val => setMessage(val)} />
+      <Button name="Send" onButtonClick={sendMessage} />
+    </NoSsr>
+  );
 }
-
-// Chat.getInitialProps = async () => {
-//   const socket = await io.connect('http://localhost:3000');
-//   let message = '';
-
-//   socket.emit('hello', 'hello world its working');
-
-//   socket.on('onMessage', msg => (message = msg));
-
-//   return { message };
-// };
 
 export default Chat;

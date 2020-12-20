@@ -3,8 +3,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import { MongoClient } from 'mongodb';
 import resolvers from './resolvers';
 import typeDefs from './TypeDef';
-
-const { Server } = require('socket.io');
+import jwt from 'jsonwebtoken';
 
 require('dotenv').config();
 
@@ -14,34 +13,20 @@ const schema = makeExecutableSchema({
 });
 
 let db;
+let loggedUser;
 
 const apolloServer = new ApolloServer({
   schema,
   context: async ({ req, res }) => {
     // AUTHORIZATION
-    console.log(req.headers.authorization);
-    // SOCKET
-    if (!res.socket.server.io) {
-      console.log('*First use, starting socket.io');
+    const token = req.headers.authorization ? req.headers.authorization.split('Bearer ')[1] : '';
 
-      const io = new Server(res.socket.server);
+    if (token) {
+      const user = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-      io.on('connection', socket => {
-        console.log('user connected');
-        console.log(socket.id + 'connected');
+      if (!user) throw new AuthenticationError('You must be logged in');
 
-        socket.on('hello', msg => {
-          socket.emit('onMessage', msg);
-        });
-
-        socket.on('disconnect', () => {
-          console.log(socket.id + 'diconnected');
-        });
-      });
-
-      res.socket.server.io = io;
-    } else {
-      console.log('socket.io already running');
+      loggedUser = user;
     }
 
     // DATABASE
@@ -59,7 +44,7 @@ const apolloServer = new ApolloServer({
       }
     }
 
-    return { db };
+    return { db, loggedUser };
   },
 });
 

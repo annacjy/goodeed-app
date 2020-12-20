@@ -1,0 +1,23 @@
+.chatBubble {
+  position: relative;
+  background: #29bac7;
+  border-radius: 7px;
+  padding: 10px;
+  max-width: 250px;
+  min-height: 40px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    // left: 0 for the left side
+    top: 50%;
+    width: 0;
+    height: 0;
+    border: 11px solid transparent;
+    border-left-color: #29bac7;
+    border-right: 0;
+    margin-top: -11px;
+    margin-right: -11px;
+  }
+}

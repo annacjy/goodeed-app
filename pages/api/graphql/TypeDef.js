@@ -2,11 +2,19 @@ import { gql } from 'apollo-server-micro';
 
 const TypeDefs = gql`
   type User {
-    id: ID!
-    firstName: String!
-    lastName: String!
-    blog: String
-    stars: Int
+    username: String!
+    email: String!
+  }
+
+  type StatusPayload {
+    ok: Boolean!
+    message: String
+  }
+
+  type AuthPayload {
+    token: String
+    status: StatusPayload
+    username: String
   }
 
   type Chat {
@@ -21,6 +29,8 @@ const TypeDefs = gql`
   }
 
   type Mutation {
+    login(username: String!, password: String!): AuthPayload
+    register(username: String!, password: String!): AuthPayload
     sendMessage(from: String!, message: String!): Chat
   }
 `;

@@ -1,38 +1,81 @@
-import Head from 'next/head';
-import styles from '../styles/Home.module.css';
-
-import { useQuery } from '@apollo/react-hooks';
+import styles from './styles.module.scss';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useQuery, useMutation } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
+import Cookies from 'js-cookie';
 
-export default function Home() {
-  const GET_USERS = gql`
-    query {
-      users {
-        id
-        firstName
+import Input from 'components/Input';
+import Button from 'components/Button';
+
+export default function Login() {
+  const router = useRouter();
+
+  const LOGIN_USER = gql`
+    mutation Login($username: String!, $password: String!) {
+      login(username: $username, password: $password) {
+        token
+        username
+        status {
+          ok
+          message
+        }
       }
     }
   `;
 
-  const { loading, error, data } = useQuery(GET_USERS);
+  const REGISTER_USER = gql`
+    mutation Register($username: String!, $password: String!) {
+      register(username: $username, password: $password) {
+        status {
+          ok
+          message
+        }
+      }
+    }
+  `;
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error</p>;
+  const [login, loginRes] = useMutation(LOGIN_USER);
+  const [register, registerRes] = useMutation(REGISTER_USER);
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    if (loginRes.data) {
+      const { status, token } = loginRes.data && loginRes.data.login;
+      if (status.ok) {
+        Cookies.set('token', token, { expires: 1 });
+
+        router.replace('/home');
+      }
+    }
+  }, [loginRes.data]);
 
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      {data.users.map(el => (
-        <div key={el.id}>
-          <h1>{el.id}</h1>
-          <p>{el.firstName}</p>
+    <div className={styles.login}>
+      <div className={styles.login__info}>
+        <h1>Goodeed.</h1>
+        <p>Features</p>
+        <img src="/help.svg" alt="logo" />
+      </div>
+      <div className={styles.login__form}>
+        <div>
+          <Input name="username" type="text" value={username} onInputChange={val => setUsername(val)} />
+          <Input name="password" type="password" value={password} onInputChange={val => setPassword(val)} />
         </div>
-      ))}
-      <div>HELLOOO</div>
+        <Button
+          name="Login"
+          disabled={!username || !password}
+          onButtonClick={() => login({ variables: { username, password } })}
+        />
+        <Button
+          name="Register"
+          disabled={!username || !password}
+          onButtonClick={() => register({ variables: { username, password } })}
+        />
+        <p>dont have an account? register here</p>
+      </div>
     </div>
   );
 }
