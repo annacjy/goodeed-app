@@ -8,6 +8,6 @@ module.exports = {
   },
   env: {
     SITE_BASE_URL_DEV: process.env.SITE_BASE_URL_DEV,
-    SITE_BASE_URL: process.env.SITE_BASE_URL,
+    APP_URL: process.env.APP_URL,
   },
 };

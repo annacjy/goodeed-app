@@ -43,7 +43,7 @@ const Chatbox = ({ chatParticipants }) => {
   const [postMessage, postMessageRes] = useMutation(POST_MESSAGE);
 
   useEffect(async () => {
-    const socketIo = io.connect(process.env.SITE_BASE_URL, { forceNew: true });
+    const socketIo = io.connect(process.env.APP_URL, { forceNew: true });
 
     setSocket(socketIo);
 
