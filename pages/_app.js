@@ -5,7 +5,7 @@ import { setContext } from '@apollo/client/link/context';
 import Cookies from 'js-cookie';
 
 const httpLink = createHttpLink({
-  uri: `${process.env.SITE_BASE_URL}/api/graphql`,
+  uri: `${process.env.APP_URL}/api/graphql`,
 });
 
 const authLink = setContext((_, { headers }) => {
@@ -26,6 +26,15 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
   connectToDevTools: true,
 });
+
+// uri: process.env.NODE_ENV === "development" ? endpoint : prodEndpoint,
+//     request: (operation) => {
+//       operation.setContext({
+//         fetchOptions: {
+//           credentials: "include",
+//         },
+//         headers,
+//       });
 
 function MyApp({ Component, pageProps }) {
   return (
