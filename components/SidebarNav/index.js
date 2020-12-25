@@ -1,8 +1,9 @@
 import Link from 'next/link';
+import styles from './styles.module.scss';
 
 const SidebarNav = () => {
   return (
-    <nav>
+    <nav className={styles.nav}>
       <ul>
         <li>
           <Link href="/home">
@@ -10,8 +11,8 @@ const SidebarNav = () => {
           </Link>
         </li>
         <li>
-          <Link href="/profile">
-            <a>Profile</a>
+          <Link href="/dashboard">
+            <a>Dashboard</a>
           </Link>
         </li>
         <li>

@@ -43,16 +43,31 @@ const TypeDefs = gql`
 
   # <---- CHAT ----->
   type Chat {
-    id: Int!
     from: String!
+    to: String!
     message: String!
+    createdAt: String!
+  }
+
+  type MessageData {
+    _id: String!
+    participants: [String]!
+    messages: [Chat]
+  }
+
+  type Chats {
+    user: String!
+    messageData: [MessageData]!
   }
 
   # <---- QUERY ----->
   type Query {
     users: [User]!
-    chats: [Chat]!
+    userPost: [Posts]!
     posts: [Posts]!
+    comments(id: String!): [Post]!
+    chats: Chats!
+    storedMessages(_id: String!): MessageData!
   }
 
   # <---- MUTATION ----->
@@ -62,8 +77,9 @@ const TypeDefs = gql`
     register(username: String!, password: String!): AuthPayload
     # <---- Posts ----->
     createPost(text: String!, createdAt: String!): Posts
+    postComment(text: String!, createdAt: String!, id: String!): Post
     # <---- Chat ----->
-    sendMessage(from: String!, message: String!): Chat
+    postMessage(to: String!, message: String!, createdAt: String!): Chat
   }
 `;
 

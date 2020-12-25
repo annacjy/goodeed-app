@@ -6,6 +6,7 @@
   min-height: 40px;
   display: flex;
   flex-direction: column;
+  margin-bottom: 15px;
 
   &::after {
     content: '';
@@ -14,9 +15,7 @@
     width: 0;
     height: 0;
     border: 11px solid transparent;
-    border-right: 0;
     margin-top: -11px;
-    margin-right: -11px;
   }
 
   &--left {
@@ -24,7 +23,10 @@
 
     &::after {
       left: 0;
+      border-left: 0;
+      border-right-color: #00aabb;
       border-left-color: #29bac7;
+      margin-left: -11px;
     }
   }
 
@@ -33,6 +35,8 @@
 
     &::after {
       right: 0;
+      border-right: 0;
+      margin-right: -11px;
       border-left-color: green;
     }
   }

@@ -1,9 +1,10 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { ObjectId } from 'mongodb';
+import { AuthenticationError } from 'apollo-server-core';
 
 const { BCRYPT_SALT_ROUNDS, JWT_SECRET_KEY } = process.env;
 
-// TODO: separate resolvers and TypeDefs into "modules" (user, posts, chat)
 const resolvers = {
   Query: {
     users(_parent, _args, { db }, _info) {
@@ -14,11 +15,54 @@ const resolvers = {
           return data.users;
         });
     },
-    posts: async (_parent, _args, { db }, _info) => {
+    posts: async (_parent, _args, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
       return await db
         .collection('posts')
         .find()
         .toArray();
+    },
+    userPost: async (_parent, _args, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
+      const allPosts = await db
+        .collection('posts')
+        .find()
+        .toArray();
+
+      return allPosts.filter(({ content }) => content.user.username === loggedUser.username);
+    },
+    comments: async (_parent, { id }, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
+      const objId = new ObjectId(id);
+
+      const post = await db.collection('posts').findOne({ _id: objId });
+
+      return post.comments;
+    },
+    chats: async (_parent, _args, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
+      const allChats = await db
+        .collection('chats')
+        .find()
+        .toArray();
+
+      const filteredChats = allChats.filter(({ participants }) => participants.includes(loggedUser.username));
+
+      return { messageData: filteredChats, user: loggedUser.username };
+    },
+    storedMessages: async (_parent, { _id }, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
+      const objId = new ObjectId(_id);
+
+      const chat = await db.collection('chats').findOne({ _id: objId });
+      chat.messages = chat.messages.reverse();
+
+      return chat;
     },
   },
   Mutation: {
@@ -76,18 +120,17 @@ const resolvers = {
 
     // <---- POSTS ---->
     createPost: async (_parent, args, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
       const { text, createdAt } = args;
 
       const Posts = db.collection('posts');
-      const Users = db.collection('users');
-
-      const userPayload = await Users.findOne({ username: loggedUser.username });
 
       const newPost = {
         content: {
           text,
           user: {
-            username: userPayload.username,
+            username: loggedUser.username,
           },
           createdAt,
         },
@@ -98,6 +141,63 @@ const resolvers = {
       await Posts.insertOne(newPost);
 
       return newPost;
+    },
+    postComment: async (_parent, args, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
+      const { text, createdAt, id } = args;
+
+      const Posts = db.collection('posts');
+      const objId = new ObjectId(id);
+
+      const postCurrentComments = await Posts.findOne({ _id: objId });
+
+      const newComment = {
+        text,
+        createdAt,
+        user: { username: loggedUser.username },
+      };
+
+      await Posts.findOneAndUpdate(
+        { _id: objId },
+        { $set: { comments: [...postCurrentComments.comments, newComment] } }
+      );
+
+      return newComment;
+    },
+
+    // <---- CHATS ---->
+    postMessage: async (_parent, args, { db, loggedUser }, _info) => {
+      const { to, message, createdAt } = args;
+
+      // find chats participants where it includes both from and to
+      const Chats = db.collection('chats');
+
+      const allChats = await Chats.find().toArray();
+      const matchedMessages = allChats.find(
+        ({ participants }) => participants.includes(loggedUser.username) && participants.includes(to)
+      );
+
+      const newMessage = {
+        from: loggedUser.username,
+        to,
+        message,
+        createdAt,
+      };
+
+      // if chats already exist, update Chat object to the Chats
+      if (matchedMessages) {
+        await Chats.findOneAndUpdate(
+          { _id: matchedMessages._id },
+          { $set: { messages: [...matchedMessages.messages, newMessage] } }
+        );
+      } else {
+        // else, insert new Chat object with the participants
+        await Chats.insertOne({
+          participants: [loggedUser.username, to],
+          messages: [newMessage],
+        });
+      }
     },
   },
 };

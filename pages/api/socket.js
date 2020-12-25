@@ -7,32 +7,41 @@ const socketHandler = (req, res) => {
     const io = new Server(res.socket.server);
 
     io.on('connection', socket => {
-      console.log('user connected');
       console.log(socket.id + ' ==== connected');
 
-      // socket.on('join', roomName => {
-      //   let split = roomName.split('--with--');
-      //   let unique = [...new Set(split)].sort((a, b) => (a < b ? -1 : 1));
-      //   let updatedRoomName = unique.join('');
+      socket.on('join', roomName => {
+        let split = roomName.split('--with--');
+        let unique = [...new Set(split)].sort((a, b) => (a < b ? -1 : 1));
+        let updatedRoomName = unique.join('');
 
-      //   socket.join(updatedRoomName);
-      //   socket.on('emitMessage', data => {
-      //     socket.to(updatedRoomName).emit('onMessage', data);
-      //   });
-      //   socket.on('isTyping', isTyping => {
-      //     socket.broadcast.emit('typing', isTyping);
-      //   });
-      //   socket.broadcast.emit('isOnline', true);
-      // });
+        Array.from(socket.rooms)
+          .filter(it => it !== socket.id)
+          .forEach(id => {
+            socket.leave(id);
+            socket.removeAllListeners(`emitMessage`);
+          });
 
-      socket.on('emitMessage', data => {
-        socket.broadcast.emit('onMessage', data);
+        socket.join(updatedRoomName);
+        socket.emit('roomName', updatedRoomName);
+
+        socket.on(`emitMessage`, message => {
+          Array.from(socket.rooms)
+            .filter(it => it !== socket.id)
+            .forEach(id => {
+              socket.to(id).emit('onMessage', message);
+            });
+        });
+
+        // socket.on('isTyping', isTyping => {
+        //   socket.broadcast.emit('typing', isTyping);
+        // });
+        // socket.broadcast.emit('isOnline', true);
       });
 
       socket.on('disconnect', () => {
         console.log(socket.id + ' ==== diconnected');
         socket.removeAllListeners();
-        socket.broadcast.emit('isOnline', false);
+        // socket.broadcast.emit('isOnline', false);
       });
     });
 

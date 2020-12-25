@@ -22,6 +22,13 @@ const Home = () => {
           }
         }
         status
+        comments {
+          text
+          user {
+            username
+          }
+          createdAt
+        }
       }
     }
   `;
@@ -45,6 +52,8 @@ const Home = () => {
   const [createPost, newPostRes] = useMutation(CREATE_POST);
 
   const [newPost, setNewPost] = useState('');
+
+  if (error) return <p>{error.message}</p>;
 
   const addNewPost = () => {
     createPost({
