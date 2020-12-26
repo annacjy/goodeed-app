@@ -11,5 +11,20 @@ spec:
    - key: DATABASE_URL
      scope: RUN_TIME
      value: ${goodeed-db.DATABASE_URL}
+   - key: DATABASE
+     scope: RUN_TIME
+     value: ${goodeed-db.DATABASE}
+   - key: HOSTNAME
+     scope: RUN_TIME
+     value: ${goodeed-db.HOSTNAME}
+   - key: PORT
+     scope: RUN_TIME
+     value: ${goodeed-db.PORT}
+   - key: USERNAME
+     scope: RUN_TIME
+     value: ${goodeed-db.USERNAME}
+   - key: PASSWORD
+     scope: RUN_TIME
+     value: ${goodeed-db.PASSWORD}
   databases:
   - name: goodeed-db

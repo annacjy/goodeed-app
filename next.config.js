@@ -9,5 +9,10 @@ module.exports = {
   env: {
     APP_URL: process.env.NODE_ENV === 'production' ? process.env.APP_URL : process.env.SITE_BASE_URL_DEV,
     DATABASE_URL: process.env.DATABASE_URL,
+    DATABASE: process.env.DATABASE,
+    HOSTNAME: process.env.HOSTNAME,
+    PORT: process.env.PORT,
+    USERNAME: process.env.USERNAME,
+    PASSWORD: process.env.PASSWORD,
   },
 };
