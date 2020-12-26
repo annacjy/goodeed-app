@@ -5,6 +5,17 @@ import knex from 'knex';
 import resolvers from 'apollo/resolvers';
 import typeDefs from 'apollo/TypeDef';
 
+const dbConnection =
+  process.env.NODE_ENV !== 'production'
+    ? {
+        host: '127.0.0.1',
+        user: 'devtest',
+        password: 'testing123',
+        port: 5432,
+        database: 'testdb',
+      }
+    : process.env.DATABASE_URL;
+
 const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
@@ -31,13 +42,7 @@ const apolloServer = new ApolloServer({
       try {
         db = knex({
           client: 'pg',
-          connection: {
-            host: '127.0.0.1',
-            user: 'devtest',
-            password: 'testing123',
-            port: 5432,
-            database: 'testdb',
-          },
+          connection: dbConnection,
         });
       } catch (e) {
         console.log('--->error while connecting with graphql context (db)', e);
