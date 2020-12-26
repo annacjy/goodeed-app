@@ -39,7 +39,6 @@ const apolloServer = new ApolloServer({
       }
     }
 
-    // console.log('user from gql====', loggedUser);
     return { db, loggedUser };
   },
 });
