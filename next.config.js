@@ -7,7 +7,7 @@ module.exports = {
     return config;
   },
   env: {
-    SITE_BASE_URL_DEV: process.env.SITE_BASE_URL_DEV,
-    APP_URL: process.env.APP_URL,
+    APP_URL: process.env.NODE_ENV === 'production' ? process.env.APP_URL : process.env.SITE_BASE_URL_DEV,
+    DATABASE_URL: process.env.DATABASE_URL,
   },
 };

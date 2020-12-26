@@ -1,9 +1,9 @@
 import { ApolloServer } from 'apollo-server-micro';
 import { makeExecutableSchema } from 'graphql-tools';
-import { MongoClient } from 'mongodb';
-import resolvers from './resolvers';
-import typeDefs from './TypeDef';
 import jwt from 'jsonwebtoken';
+import knex from 'knex';
+import resolvers from 'apollo/resolvers';
+import typeDefs from 'apollo/TypeDef';
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -12,7 +12,7 @@ const schema = makeExecutableSchema({
 
 const apolloServer = new ApolloServer({
   schema,
-  context: async ({ req, res }) => {
+  context: async ({ req }) => {
     // AUTHORIZATION
     let loggedUser;
 
@@ -27,16 +27,18 @@ const apolloServer = new ApolloServer({
     // DATABASE
     let db;
 
-    // TODO: change DB to POSTGRES
     if (!db) {
       try {
-        const dbClient = new MongoClient(process.env.MONGO_DB_URI, {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
+        db = knex({
+          client: 'pg',
+          connection: {
+            host: '127.0.0.1',
+            user: 'devtest',
+            password: 'testing123',
+            port: 5432,
+            database: 'testdb',
+          },
         });
-
-        if (!dbClient.isConnected()) await dbClient.connect();
-        db = dbClient.db('graphql-test'); // database name
       } catch (e) {
         console.log('--->error while connecting with graphql context (db)', e);
       }

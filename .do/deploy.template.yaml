@@ -1,0 +1,15 @@
+spec:
+  name: goodeed-app
+  services:
+  - name: web
+   git:
+     branch: main
+     repo_clone_url: https://github.com/annacjy/goodeed-app.git
+   envs:
+   - key: APP_URL
+     value: ${goodeed-app.APP_URL}
+   - key: DATABASE_URL
+     scope: RUN_TIME
+     value: ${goodeed-db.DATABASE_URL}
+  databases:
+  - name: goodeed-db
