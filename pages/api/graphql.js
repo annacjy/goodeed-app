@@ -4,17 +4,10 @@ import jwt from 'jsonwebtoken';
 import knex from 'knex';
 import resolvers from 'apollo/resolvers';
 import typeDefs from 'apollo/TypeDef';
+import knexConfig from 'knexfile';
 
-const dbConnection =
-  process.env.NODE_ENV !== 'production'
-    ? {
-        host: '127.0.0.1',
-        user: 'devtest',
-        password: 'testing123',
-        port: 5432,
-        database: 'testdb',
-      }
-    : process.env.DATABASE_URL;
+const environment = process.env.NODE_ENV;
+const knexCFG = knexConfig[environment];
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -40,10 +33,7 @@ const apolloServer = new ApolloServer({
 
     if (!db) {
       try {
-        db = knex({
-          client: 'pg',
-          connection: dbConnection,
-        });
+        db = knex(knexCFG);
       } catch (e) {
         console.log('--->error while connecting with graphql context (db)', e);
       }
