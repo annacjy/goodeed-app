@@ -29,9 +29,9 @@ module.exports = {
       min: 0,
       max: 10,
     },
+    searchPath: ['knex', 'public'],
     migrations: {
       directory: './db/migrations',
-      tableName: 'knex_migrations',
     },
     useNullAsDefault: true,
   },
