@@ -1,8 +1,5 @@
-// Update with your config settings.
-// let pg = require('pg');
 const { DATABASE_URL } = process.env;
 
-// pg.defaults.ssl = true;
 module.exports = {
   development: {
     client: 'postgresql',
@@ -21,6 +18,9 @@ module.exports = {
   staging: {
     client: 'postgresql',
     connection: DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false,
+    },
     pool: {
       min: 2,
       max: 10,
@@ -34,6 +34,9 @@ module.exports = {
   production: {
     client: 'postgresql',
     connection: DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false,
+    },
     pool: {
       min: 2,
       max: 10,
