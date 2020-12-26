@@ -18,9 +18,6 @@ module.exports = {
   staging: {
     client: 'postgresql',
     connection: DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false,
-    },
     pool: {
       min: 2,
       max: 10,
@@ -34,9 +31,6 @@ module.exports = {
   production: {
     client: 'postgresql',
     connection: DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false,
-    },
     pool: {
       min: 2,
       max: 10,
