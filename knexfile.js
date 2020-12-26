@@ -1,4 +1,4 @@
-const { DATABASE_URL } = process.env;
+const { DATABASE, HOSTNAME, PORT, USERNAME, PASSWORD } = process.env;
 
 module.exports = {
   development: {
@@ -15,27 +15,22 @@ module.exports = {
     },
   },
 
-  staging: {
-    client: 'postgresql',
-    connection: DATABASE_URL,
-    pool: {
-      min: 2,
-      max: 10,
-    },
-    migrations: {
-      tableName: 'knex_migrations',
-    },
-    useNullAsDefault: true,
-  },
-
   production: {
     client: 'postgresql',
-    connection: DATABASE_URL,
+    connection: {
+      host: HOSTNAME,
+      user: USERNAME,
+      password: PASSWORD,
+      port: PORT,
+      database: DATABASE,
+    },
+    ssl: true,
     pool: {
       min: 2,
       max: 10,
     },
     migrations: {
+      directory: './db/migrations',
       tableName: 'knex_migrations',
     },
     useNullAsDefault: true,
