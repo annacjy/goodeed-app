@@ -26,7 +26,7 @@ module.exports = {
     },
     ssl: true,
     pool: {
-      min: 0,
+      min: 3,
       max: 10,
     },
     searchPath: ['knex', 'public'],
