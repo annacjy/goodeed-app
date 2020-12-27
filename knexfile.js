@@ -29,13 +29,8 @@ module.exports = {
         ca: fs.readFileSync('./ca-certificate.crt'),
       },
     },
-    pool: {
-      min: 0,
-      max: 10,
-    },
-    migrations: {
-      directory: './db/migrations',
-    },
+    pool: { min: 1, max: 22 },
+    asyncStackTraces: true,
     useNullAsDefault: true,
   },
 };
