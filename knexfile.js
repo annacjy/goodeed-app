@@ -1,4 +1,6 @@
-const { DATABASE, HOSTNAME, PORT, USERNAME, PASSWORD } = process.env;
+let fs = require('fs');
+
+const { DATABASE, HOSTNAME, PORT, USERNAME, PASSWORD, DATABASE_URL } = process.env;
 
 module.exports = {
   development: {
@@ -23,13 +25,14 @@ module.exports = {
       password: PASSWORD,
       port: PORT,
       database: DATABASE,
+      ssl: {
+        ca: fs.readFileSync('./ca-certificate.crt'),
+      },
     },
-    ssl: true,
     pool: {
-      min: 3,
+      min: 0,
       max: 10,
     },
-    searchPath: ['knex', 'public'],
     migrations: {
       directory: './db/migrations',
     },
