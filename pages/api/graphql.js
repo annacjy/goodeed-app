@@ -1,14 +1,8 @@
 import { ApolloServer } from 'apollo-server-micro';
 import { makeExecutableSchema } from 'graphql-tools';
 import jwt from 'jsonwebtoken';
-import knex from 'knex';
 import resolvers from 'apollo/resolvers';
 import typeDefs from 'apollo/TypeDef';
-
-import knexConfig from 'knexfile';
-
-const environment = process.env.NODE_ENV;
-const knexCFG = knexConfig[environment];
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -18,7 +12,6 @@ const schema = makeExecutableSchema({
 const apolloServer = new ApolloServer({
   schema,
   context: async ({ req }) => {
-    // AUTHORIZATION
     let loggedUser;
 
     const token = req.headers.authorization ? req.headers.authorization.split('Bearer ')[1] : '';
@@ -29,19 +22,7 @@ const apolloServer = new ApolloServer({
       loggedUser = user;
     }
 
-    // DATABASE
-    let db;
-
-    if (!db) {
-      try {
-        db = knex(knexCFG);
-      } catch (e) {
-        console.log('--->error while connecting with graphql context (db)', e);
-      }
-    }
-
-    // console.log('user from gql====', loggedUser);
-    return { db, loggedUser };
+    return { loggedUser };
   },
 });
 
