@@ -9,8 +9,8 @@ const TypeDefs = gql`
 
   type User {
     username: String!
-    password: String
-    displayName: String!
+    password: String!
+    displayName: String
     userImage: String
     location: Location
   }
@@ -62,7 +62,6 @@ const TypeDefs = gql`
 
   # <---- QUERY ----->
   type Query {
-    users: [User]!
     userPost: [Posts]!
     posts: [Posts]!
     comments(id: String!): [Post]!

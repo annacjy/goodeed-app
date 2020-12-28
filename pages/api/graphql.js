@@ -1,15 +1,9 @@
 import { ApolloServer } from 'apollo-server-micro';
-import { makeExecutableSchema } from 'graphql-tools';
-import jwt from 'jsonwebtoken';
-import resolvers from 'apollo/resolvers';
-import typeDefs from 'apollo/TypeDef';
-
 import { MongoClient } from 'mongodb';
+import jwt from 'jsonwebtoken';
+import schema from 'apollo/schema';
 
-const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers,
-});
+let db;
 
 const apolloServer = new ApolloServer({
   schema,
@@ -24,8 +18,6 @@ const apolloServer = new ApolloServer({
       loggedUser = user;
     }
 
-    let db;
-
     if (!db) {
       try {
         const dbClient = new MongoClient(process.env.MONGO_DB_URI, {
@@ -34,6 +26,7 @@ const apolloServer = new ApolloServer({
         });
 
         if (!dbClient.isConnected()) await dbClient.connect();
+
         db = dbClient.db('graphql-test'); // database name
       } catch (e) {
         console.log('--->error while connecting with graphql context (db)', e);

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import styles from './styles.module.scss';
+import Button from 'components/Button';
 
 const SidebarNav = () => {
   return (
@@ -20,6 +21,7 @@ const SidebarNav = () => {
             <a>Messages</a>
           </Link>
         </li>
+        <Button name="Add your post" />
         <li>logout</li>
       </ul>
     </nav>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import gql from 'graphql-tag';
 import withLayout from 'components/Layout';
 import Post from 'components/Post';
+import Button from 'components/Button';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -42,6 +43,11 @@ const Dashboard = () => {
 
   return (
     <div>
+      <div>
+        <div>Avatar</div>
+        <p>Name</p>
+        <Button name="Edit profile" />
+      </div>
       <div>
         <span onClick={() => setActiveTab('all')}>All</span>
         <span onClick={() => setActiveTab('closed')}>Borrowed / Closed</span>

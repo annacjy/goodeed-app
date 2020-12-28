@@ -1,14 +1,18 @@
 import styles from './styles.module.scss';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useMutation, useLazyQuery } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
 import Button from 'components/Button';
+import UserContext from 'components/UserContext';
 import dateTimeFormatter from 'utils/dateTimeFormat';
 
 const Post = ({ post, isModifiable }) => {
   const [isCommentFormVisible, setIsCommentFormVisible] = useState(false);
+  const [isOptionsVisible, setIsOptionsVisible] = useState(false);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
+
+  const { user } = useContext(UserContext);
 
   const POST_COMMENT = gql`
     mutation PostComment($text: String!, $createdAt: String!, $id: String!) {
@@ -51,6 +55,10 @@ const Post = ({ post, isModifiable }) => {
     setIsCommentFormVisible(true);
   };
 
+  const openOptions = () => {
+    setIsOptionsVisible(true);
+  };
+
   return (
     <div className={styles.post}>
       <div className={styles.post__avatar}>
@@ -59,6 +67,10 @@ const Post = ({ post, isModifiable }) => {
           <p>{post.content.user.username}</p>
           <span>{post.content.createdAt}</span>
         </div>
+        {user && user.username !== post.content.user.username && (
+          <img src="/more.svg" alt="options" width="10" onClick={openOptions} />
+        )}
+        {isOptionsVisible && <div>dropdown here. chat with {post.content.user.username}</div>}
       </div>
       <p>{isModifiable ? 'borrowed/close' : null}</p>
       <p>{post.content.text}</p>

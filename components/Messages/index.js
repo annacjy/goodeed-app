@@ -8,7 +8,7 @@ import Button from 'components/Button';
 import ChatBubble from 'components/ChatBubble';
 import styles from './styles.module.scss';
 
-const Chatbox = ({ chatParticipants }) => {
+const Messages = ({ chatParticipants }) => {
   const [socket, setSocket] = useState(null);
   const [room, setRoom] = useState('');
   const [message, setMessage] = useState('');
@@ -133,4 +133,4 @@ const Chatbox = ({ chatParticipants }) => {
   );
 };
 
-export default Chatbox;
+export default Messages;

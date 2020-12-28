@@ -1,14 +1,17 @@
 import '../styles/globals.css';
+import { useEffect, useState } from 'react';
 import { ApolloProvider } from '@apollo/react-hooks';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import UserContext from 'components/UserContext';
 import Cookies from 'js-cookie';
+import jwt from 'jsonwebtoken';
 
 const httpLink = createHttpLink({
   uri: `${process.env.APP_URL}/api/graphql`,
 });
 
-const authLink = setContext((_, { headers }) => {
+const authLink = setContext(async (_, { headers }) => {
   // get the authentication token from local storage if it exists
   const token = Cookies.get('token');
 
@@ -27,19 +30,24 @@ const client = new ApolloClient({
   connectToDevTools: true,
 });
 
-// uri: process.env.NODE_ENV === "development" ? endpoint : prodEndpoint,
-//     request: (operation) => {
-//       operation.setContext({
-//         fetchOptions: {
-//           credentials: "include",
-//         },
-//         headers,
-//       });
-
 function MyApp({ Component, pageProps }) {
+  const [userContext, setUserContext] = useState({});
+
+  useEffect(() => {
+    const token = Cookies.get('token');
+
+    if (token) {
+      jwt.verify(token, process.env.JWT_SECRET_KEY, (error, decoded) => {
+        setUserContext(error ? { user: null } : { user: decoded });
+      });
+    }
+  }, []);
+
   return (
     <ApolloProvider client={client}>
-      <Component {...pageProps} />
+      <UserContext.Provider value={userContext}>
+        <Component {...pageProps} />
+      </UserContext.Provider>
     </ApolloProvider>
   );
 }

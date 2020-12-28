@@ -1,18 +1,11 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { ObjectId } from 'mongodb';
 
 const { BCRYPT_SALT_ROUNDS, JWT_SECRET_KEY } = process.env;
 
 const resolvers = {
   Query: {
-    users(_parent, _args, { db }, _info) {
-      return db
-        .collection('users')
-        .findOne()
-        .then(data => {
-          return data.users;
-        });
-    },
     posts: async (_parent, _args, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
 
