@@ -8,17 +8,5 @@ spec:
    envs:
    - key: APP_URL
      value: ${goodeed-app.APP_URL}
-   - key: DATABASE_URL
-     value: ${goodeed-db.DATABASE_URL}
-   - key: DATABASE
-     value: ${goodeed-db.DATABASE}
-   - key: HOSTNAME
-     value: ${goodeed-db.HOSTNAME}
-   - key: PORT
-     value: ${goodeed-db.PORT}
-   - key: USERNAME
-     value: ${goodeed-db.USERNAME}
-   - key: PASSWORD
-     value: ${goodeed-db.PASSWORD}
   databases:
   - name: goodeed-db
