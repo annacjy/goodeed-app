@@ -1,4 +1,4 @@
-import { connection } from 'db/connection';
+// import { connection } from 'db/connection';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -8,9 +8,11 @@ const resolvers = {
   Query: {
     users(_parent, _args, { db }, _info) {
       return db
-        .select('*')
-        .from('users')
-        .orderBy('id');
+        .collection('users')
+        .findOne()
+        .then(data => {
+          return data.users;
+        });
     },
     posts: async (_parent, _args, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
@@ -64,56 +66,43 @@ const resolvers = {
   },
   Mutation: {
     // <---- AUTHENTICATION ---->
-    register: async (_parent, args, _context, _info) => {
-      const trx = await connection.transaction();
+    register: async (_parent, args, { db }, _info) => {
+      const { username, password } = args;
 
+      if (!username || !password) return { status: { ok: false, message: 'All fields are required.' } };
+
+      const Users = db.collection('users');
       try {
-        const { username, password } = args;
+        const user = await Users.findOne({ username });
 
-        if (!username || !password) return { status: { ok: false, message: 'All fields are required.' } };
-        const user = await trx('users')
-          .where({ username })
-          .transacting(trx);
-
-        if (user.length)
+        if (user)
           return { status: { ok: false, message: 'This username already exists. Please pick another username.' } };
 
         const hash = await bcrypt.hash(password, Number(BCRYPT_SALT_ROUNDS));
         const newUser = {
           username,
-          displayName: username,
           password: hash,
         };
-        await trx('users')
-          .insert(newUser)
-          .transacting(trx);
+        await Users.insertOne(newUser);
 
-        trx.commit();
         return { status: { ok: true } };
       } catch (error) {
-        trx.rollback();
         return { status: { ok: false, message: error } };
       }
     },
-    login: async (_parent, args, _context, _info) => {
-      const trx = await connection.transaction();
+    login: async (_parent, args, { db }, _info) => {
+      const { username, password } = args;
 
+      if (!username || !password) return { status: { ok: false, message: 'All fields are required.' } };
+      const Users = db.collection('users');
       try {
-        const { username, password } = args;
+        const user = await Users.findOne({ username });
+        if (!user) return { status: { ok: false, message: "This username doesn't exist." } };
 
-        if (!username || !password) return { status: { ok: false, message: 'All fields are required.' } };
-
-        const user = await trx('users')
-          .where({ username })
-          .transacting(trx);
-
-        if (!user.length) return { status: { ok: false, message: "This username doesn't exist." } };
-
-        const match = await bcrypt.compare(password, user[0].password);
-        trx.commit();
+        const match = await bcrypt.compare(password, user.password);
 
         if (match) {
-          const token = jwt.sign(JSON.stringify(user[0]), JWT_SECRET_KEY);
+          const token = jwt.sign(JSON.stringify(user), JWT_SECRET_KEY);
 
           return jwt.verify(token, JWT_SECRET_KEY, (error, decoded) => {
             return error
@@ -124,7 +113,6 @@ const resolvers = {
           return { status: { ok: false, message: 'Invalid password.' } };
         }
       } catch (error) {
-        trx.rollback();
         return { status: { ok: false, message: error } };
       }
     },
