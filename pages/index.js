@@ -61,8 +61,8 @@ export default function Login() {
       </div>
       <div className={styles.login__form}>
         <div>
-          <Input name="username" type="text" value={username} onInputChange={val => setUsername(val)} />
-          <Input name="password" type="password" value={password} onInputChange={val => setPassword(val)} />
+          <Input name="username" type="text" showLabel value={username} onInputChange={val => setUsername(val)} />
+          <Input name="password" type="password" showLabel value={password} onInputChange={val => setPassword(val)} />
         </div>
         <Button
           name="Login"

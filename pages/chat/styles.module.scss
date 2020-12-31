@@ -1,4 +1,42 @@
 .chatPage {
   display: grid;
   grid-template-columns: 1fr 2fr;
+  height: 100vh;
+
+  &__history,
+  &__messages {
+    padding-top: 150px;
+  }
+
+  &__history {
+    border-right: 1px solid #ccc;
+    & > div {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px 15px 20px;
+    }
+
+    &_avatar {
+      display: flex;
+    }
+
+    &_message {
+      margin-left: 10px;
+    }
+  }
+
+  &__messages {
+    margin-left: 40px;
+
+    &_header {
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      padding-bottom: 15px;
+
+      h1 {
+        margin-left: 10px;
+      }
+    }
+  }
 }

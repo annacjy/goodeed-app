@@ -8,7 +8,7 @@ import withLayout from 'components/Layout';
 import { useQuery, useMutation } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
 
-import dateTimeFormatter from 'utils/dateTimeFormat';
+import { dateTimeFormatter } from 'utils/functions';
 
 const Home = () => {
   const GET_POSTS = gql`
@@ -37,6 +37,7 @@ const Home = () => {
   const CREATE_POST = gql`
     mutation CreatePost($text: String!, $createdAt: String!) {
       createPost(text: $text, createdAt: $createdAt) {
+        _id
         content {
           text
           createdAt
@@ -45,6 +46,13 @@ const Home = () => {
           }
         }
         status
+        comments {
+          text
+          user {
+            username
+          }
+          createdAt
+        }
       }
     }
   `;
@@ -61,7 +69,15 @@ const Home = () => {
     onCompleted: data => setPosts(data.posts),
   });
 
-  const [createPost, newPostRes] = useMutation(CREATE_POST);
+  const [createPost] = useMutation(CREATE_POST, {
+    onCompleted: data =>
+      setPosts(previousPosts => {
+        const prev = [...previousPosts];
+        prev.unshift(data.createPost);
+        return prev;
+      }),
+  });
+
   const [updateLocation] = useMutation(UPDATE_LOCATION, {
     onCompleted: data => console.log(data),
   });

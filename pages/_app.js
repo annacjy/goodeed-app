@@ -1,11 +1,11 @@
-import '../styles/globals.css';
+import './app.scss';
 import { useEffect, useState } from 'react';
 import { ApolloProvider } from '@apollo/react-hooks';
-import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import UserContext from 'components/UserContext';
 import Cookies from 'js-cookie';
-import jwt from 'jsonwebtoken';
+import 'styles/globals.css';
 
 const httpLink = createHttpLink({
   uri: `${process.env.APP_URL}/api/graphql`,
@@ -33,13 +33,31 @@ const client = new ApolloClient({
 function MyApp({ Component, pageProps }) {
   const [userContext, setUserContext] = useState({});
 
-  useEffect(() => {
+  const GET_USER_QUERY = gql`
+    query user($token: String!) {
+      user(token: $token) {
+        username
+        displayName
+        userImage
+        location {
+          lat
+          lng
+          address
+        }
+      }
+    }
+  `;
+
+  useEffect(async () => {
     const token = Cookies.get('token');
 
     if (token) {
-      jwt.verify(token, process.env.JWT_SECRET_KEY, (error, decoded) => {
-        setUserContext(error ? { user: null } : { user: decoded });
+      const response = await client.query({
+        query: GET_USER_QUERY,
+        variables: { token },
       });
+
+      setUserContext({ user: response.data.user });
     }
   }, []);
 

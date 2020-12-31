@@ -1,18 +1,44 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
+import { AuthenticationError } from 'apollo-server-core';
+import { calcDistance } from 'utils/functions';
 
 const { BCRYPT_SALT_ROUNDS, JWT_SECRET_KEY } = process.env;
 
 const resolvers = {
   Query: {
+    user: async (_parent, { token }, { db }, _info) => {
+      const user = jwt.verify(token, JWT_SECRET_KEY, (error, decoded) => {
+        return error ? null : decoded.username;
+      });
+
+      if (!user) throw new Error('Error verifying user');
+
+      return await db.collection('users').findOne({ username: user });
+    },
     posts: async (_parent, _args, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
 
-      return await db
+      const { location } = await db.collection('users').findOne({ username: loggedUser.username });
+
+      const posts = await db
         .collection('posts')
         .find()
         .toArray();
+
+      const postsByRecent = posts.reverse();
+
+      if (location) {
+        const compareDistance = (postLat, postLng) => calcDistance(postLat, postLng, location.lat, location.lng);
+
+        // sort by distance (closest -> farthest)
+        return postsByRecent.sort(
+          (a, b) => compareDistance(a.location.lat, a.location.lng) - compareDistance(b.location.lat, b.location.lng)
+        );
+      } else {
+        return postsByRecent;
+      }
     },
     userPost: async (_parent, _args, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
@@ -41,9 +67,19 @@ const resolvers = {
         .find()
         .toArray();
 
-      const filteredChats = allChats.filter(({ participants }) => participants.includes(loggedUser.username));
+      const username = loggedUser.username;
 
-      return { messageData: filteredChats, user: loggedUser.username };
+      const mappedChats = allChats.map(obj => {
+        let rObj = {};
+        rObj['username'] = username;
+        return { ...obj, ...rObj };
+      });
+
+      const filteredChats = mappedChats
+        .filter(({ participants }) => participants.filter(({ username }) => username.includes(loggedUser.username)))
+        .sort((a, b) => new Date(b.lastUpdatedAt) - new Date(a.lastUpdatedAt));
+
+      return filteredChats;
     },
     storedMessages: async (_parent, { _id }, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
@@ -54,6 +90,17 @@ const resolvers = {
       chat.messages = chat.messages.reverse();
 
       return chat;
+    },
+    chatUser: async (_parent, { username }, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
+      const user = await db.collection('users').findOne({ username });
+
+      return {
+        username: user.username,
+        displayName: user.displayName,
+        userImage: user.userImage,
+      };
     },
   },
   Mutation: {
@@ -109,6 +156,20 @@ const resolvers = {
       }
     },
 
+    // <---- USER ---->
+    updateUser: async (_parent, { fieldsToUpdate }, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
+      const user = await db.collection('users').findOne({ username: loggedUser.username });
+
+      try {
+        await db.collection('users').findOneAndUpdate({ _id: user._id }, { $set: { ...user, ...fieldsToUpdate } });
+
+        return { ok: true, message: 'Update successful' };
+      } catch (error) {
+        return { ok: false, message: 'Something went wrong' };
+      }
+    },
     // <---- POSTS ---->
     createPost: async (_parent, args, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
@@ -116,6 +177,8 @@ const resolvers = {
       const { text, createdAt } = args;
 
       const Posts = db.collection('posts');
+
+      const { location } = await db.collection('users').findOne({ username: loggedUser.username });
 
       const newPost = {
         content: {
@@ -125,6 +188,7 @@ const resolvers = {
           },
           createdAt,
         },
+        location,
         status: 'TO_BORROW',
         comments: [],
       };
@@ -156,6 +220,9 @@ const resolvers = {
 
       return newComment;
     },
+    updatePostStatus: async (_parent, args, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+    },
 
     // <---- CHATS ---->
     postMessage: async (_parent, args, { db, loggedUser }, _info) => {
@@ -165,28 +232,35 @@ const resolvers = {
       const Chats = db.collection('chats');
 
       const allChats = await Chats.find().toArray();
-      const matchedMessages = allChats.find(
-        ({ participants }) => participants.includes(loggedUser.username) && participants.includes(to)
+      // participants.includes(loggedUser.username) && participants.includes(to.username)
+      const matchedMessages = allChats.find(({ participants }) =>
+        participants.map(({ username }) => username === loggedUser.username && username === to.username)
       );
 
       const newMessage = {
         from: loggedUser.username,
-        to,
+        to: to.username,
         message,
         createdAt,
       };
 
+      const chatUserInfo = {
+        username: loggedUser.username,
+        displayName: loggedUser.displayName,
+        userImage: loggedUser.userImage,
+      };
       // if chats already exist, update Chat object to the Chats
       if (matchedMessages) {
         await Chats.findOneAndUpdate(
           { _id: matchedMessages._id },
-          { $set: { messages: [...matchedMessages.messages, newMessage] } }
+          { $set: { messages: [...matchedMessages.messages, newMessage], lastUpdatedAt: `${new Date()}` } }
         );
       } else {
         // else, insert new Chat object with the participants
         await Chats.insertOne({
-          participants: [loggedUser.username, to],
+          participants: [chatUserInfo, to],
           messages: [newMessage],
+          lastUpdatedAt: `${new Date()}`,
         });
       }
     },

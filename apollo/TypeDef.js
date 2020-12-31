@@ -5,6 +5,13 @@ const TypeDefs = gql`
   type Location {
     lat: Float
     lng: Float
+    address: String
+  }
+
+  input LocationInput {
+    lat: Float
+    lng: Float
+    address: String
   }
 
   type User {
@@ -13,6 +20,19 @@ const TypeDefs = gql`
     displayName: String
     userImage: String
     location: Location
+  }
+
+  type UserInfo {
+    username: String!
+    displayName: String
+    userImage: String
+    location: Location
+  }
+
+  input UserInput {
+    displayName: String
+    userImage: String
+    location: LocationInput
   }
 
   # <---- AUTH ----->
@@ -39,6 +59,7 @@ const TypeDefs = gql`
     content: Post
     status: String
     comments: [Post]
+    location: Location
   }
 
   # <---- CHAT ----->
@@ -49,24 +70,35 @@ const TypeDefs = gql`
     createdAt: String!
   }
 
-  type MessageData {
-    _id: String!
-    participants: [String]!
-    messages: [Chat]
+  type ChatUserInfo {
+    username: String!
+    displayName: String
+    userImage: String
   }
 
-  type Chats {
-    user: String!
-    messageData: [MessageData]!
+  input ChatUserInfoInput {
+    username: String!
+    displayName: String
+    userImage: String
+  }
+
+  type MessageData {
+    _id: String!
+    participants: [ChatUserInfo]
+    username: String!
+    messages: [Chat]
+    lastUpdatedAt: String
   }
 
   # <---- QUERY ----->
   type Query {
+    user(token: String!): UserInfo!
     userPost: [Posts]!
     posts: [Posts]!
     comments(id: String!): [Post]!
-    chats: Chats!
+    chats: [MessageData]!
     storedMessages(_id: String!): MessageData!
+    chatUser(username: String!): ChatUserInfo!
   }
 
   # <---- MUTATION ----->
@@ -74,11 +106,14 @@ const TypeDefs = gql`
     # <---- Authentication ----->
     login(username: String!, password: String!): AuthPayload
     register(username: String!, password: String!): AuthPayload
+    # <---- User ----->
+    updateUser(fieldsToUpdate: UserInput!): StatusPayload
     # <---- Posts ----->
     createPost(text: String!, createdAt: String!): Posts
     postComment(text: String!, createdAt: String!, id: String!): Post
+    updatePostStatus: Post
     # <---- Chat ----->
-    postMessage(to: String!, message: String!, createdAt: String!): Chat
+    postMessage(to: ChatUserInfoInput!, message: String!, createdAt: String!): Chat
   }
 `;
 

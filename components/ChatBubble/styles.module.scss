@@ -19,25 +19,27 @@
   }
 
   &--left {
-    background: #29bac7;
+    background: #f6e3da;
+    color: #4d4d4d;
 
     &::after {
       left: 0;
       border-left: 0;
-      border-right-color: #00aabb;
-      border-left-color: #29bac7;
+      border-right-color: #f6e3da;
+      border-left-color: #f6e3da;
       margin-left: -11px;
     }
   }
 
   &--right {
-    background: green;
+    background: #ec8d5d;
+    color: white;
 
     &::after {
       right: 0;
       border-right: 0;
       margin-right: -11px;
-      border-left-color: green;
+      border-left-color: #ec8d5d;
     }
   }
 

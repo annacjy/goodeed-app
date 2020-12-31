@@ -22,8 +22,8 @@ const socketHandler = (req, res) => {
           });
 
         socket.join(updatedRoomName);
-        socket.emit('roomName', updatedRoomName);
 
+        console.log('room', socket.rooms);
         socket.on(`emitMessage`, message => {
           Array.from(socket.rooms)
             .filter(it => it !== socket.id)

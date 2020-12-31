@@ -10,14 +10,12 @@ import styles from './styles.module.scss';
 
 const Messages = ({ chatParticipants }) => {
   const [socket, setSocket] = useState(null);
-  const [room, setRoom] = useState('');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
 
   const GET_STORED_MESSAGES = gql`
     query StoredMessages($_id: String!) {
       storedMessages(_id: $_id) {
-        participants
         messages {
           from
           to
@@ -29,7 +27,7 @@ const Messages = ({ chatParticipants }) => {
   `;
 
   const POST_MESSAGE = gql`
-    mutation PostMessage($to: String!, $message: String!, $createdAt: String!) {
+    mutation PostMessage($to: ChatUserInfoInput!, $message: String!, $createdAt: String!) {
       postMessage(to: $to, message: $message, createdAt: $createdAt) {
         message
       }
@@ -37,21 +35,21 @@ const Messages = ({ chatParticipants }) => {
   `;
 
   const [getStoredMessages, { loading }] = useLazyQuery(GET_STORED_MESSAGES, {
-    fetchPolicy: 'network-only',
     onCompleted: d => setMessages(d.storedMessages.messages),
   });
   const [postMessage, postMessageRes] = useMutation(POST_MESSAGE);
 
-  useEffect(async () => {
+  useEffect(() => {
     const socketIo = io.connect(process.env.APP_URL, { forceNew: true });
 
     setSocket(socketIo);
 
-    await fetch('/api/socket');
-    function cleanup() {
+    fetch('/api/socket');
+
+    // when component unmounts, disconnect the socket
+    return () => {
       socketIo.disconnect();
-    }
-    return cleanup;
+    };
   }, []);
 
   const getData = _id => {
@@ -59,23 +57,20 @@ const Messages = ({ chatParticipants }) => {
   };
 
   useEffect(async () => {
-    if (socket && chatParticipants) {
+    if (socket && chatParticipants.chatPerson.username) {
       const { user, chatPerson, _id } = chatParticipants;
 
-      getData(_id);
+      if (_id) getData(_id);
 
-      socket.emit('join', `${user}--with--${chatPerson}`);
-
-      socket.on('roomName', roomName => setRoom(roomName));
+      socket.emit('join', `${user}--with--${chatPerson.username}`);
     }
   }, [socket, chatParticipants]);
 
   useEffect(() => {
     if (socket) {
       socket.on('onMessage', msg => {
-        console.log('message?', msg);
         const messageObject = {
-          from: chatParticipants.chatPerson,
+          from: chatParticipants.chatPerson.username,
           message: msg,
           createdAt: new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
         };
@@ -91,6 +86,7 @@ const Messages = ({ chatParticipants }) => {
 
   const sendMessage = () => {
     const { user, chatPerson } = chatParticipants;
+
     const timeStamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
     socket.emit(`emitMessage`, message);
@@ -107,26 +103,47 @@ const Messages = ({ chatParticipants }) => {
       return prev;
     });
 
-    postMessage({ variables: { from: user, to: chatPerson, message, createdAt: timeStamp } });
+    const chatUser = { ...chatPerson };
+
+    delete chatUser['__typename'];
+
+    postMessage({ variables: { to: chatUser, message, createdAt: timeStamp } });
+
+    // reset input
+    setMessage('');
   };
 
   return (
     <div>
-      <div className={styles.chats}>
-        {messages.length
-          ? messages.map(({ message, from, createdAt }) => {
-              const position = from === chatParticipants.user ? 'right' : 'left';
+      {loading ? (
+        <div>Loading state</div>
+      ) : (
+        <div className={styles.chats}>
+          {messages.length
+            ? messages.map(({ message, from, createdAt }, index) => {
+                const position = from === chatParticipants.user ? 'right' : 'left';
 
-              return (
-                <div className={styles[`chats--${position}`]}>
-                  <ChatBubble content={message} position={position} timeStamp={createdAt} />
-                </div>
-              );
-            })
-          : 'no messages'}
-      </div>
+                return (
+                  <div key={`${index}-${createdAt}`} className={styles[`chats--${position}`]}>
+                    <ChatBubble content={message} position={position} timeStamp={createdAt} />
+                  </div>
+                );
+              })
+            : 'no messages'}
+        </div>
+      )}
       <div>
-        <Input name="Message" type="text" onInputChange={val => setMessage(val)} />
+        <Input
+          name="Message"
+          type="text"
+          showLabel={false}
+          value={message}
+          onInputChange={val => setMessage(val)}
+          onEnter={e => {
+            setMessage(e);
+            sendMessage();
+          }}
+        />
         <Button name="Send" onButtonClick={sendMessage} />
       </div>
     </div>

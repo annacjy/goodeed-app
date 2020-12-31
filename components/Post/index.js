@@ -2,9 +2,11 @@ import styles from './styles.module.scss';
 import { useState, useContext } from 'react';
 import { useMutation, useLazyQuery } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
+import { useRouter } from 'next/router';
 import Button from 'components/Button';
+import Avatar from 'components/Avatar';
 import UserContext from 'components/UserContext';
-import dateTimeFormatter from 'utils/dateTimeFormat';
+import { dateTimeFormatter } from 'utils/functions';
 
 const Post = ({ post, isModifiable }) => {
   const [isCommentFormVisible, setIsCommentFormVisible] = useState(false);
@@ -13,6 +15,8 @@ const Post = ({ post, isModifiable }) => {
   const [comments, setComments] = useState([]);
 
   const { user } = useContext(UserContext);
+
+  const router = useRouter();
 
   const POST_COMMENT = gql`
     mutation PostComment($text: String!, $createdAt: String!, $id: String!) {
@@ -33,6 +37,7 @@ const Post = ({ post, isModifiable }) => {
         createdAt
         user {
           username
+          userImage
         }
       }
     }
@@ -55,26 +60,35 @@ const Post = ({ post, isModifiable }) => {
     setIsCommentFormVisible(true);
   };
 
-  const openOptions = () => {
-    setIsOptionsVisible(true);
-  };
-
   return (
     <div className={styles.post}>
       <div className={styles.post__avatar}>
-        <img src="/user.svg" alt="avatar" />
+        <Avatar src={post.content.user.userImage} alt={post.content.user.username} />
+
         <div>
           <p>{post.content.user.username}</p>
           <span>{post.content.createdAt}</span>
         </div>
-        {user && user.username !== post.content.user.username && (
-          <img src="/more.svg" alt="options" width="10" onClick={openOptions} />
+
+        <img src="/more.svg" alt="options" width="10" onClick={() => setIsOptionsVisible(!isOptionsVisible)} />
+
+        {isOptionsVisible && (
+          <div>
+            <ul>
+              {(user && user.username) !== post.content.user.username ? (
+                <li onClick={() => router.push({ pathname: '/chat', query: { with: post.content.user.username } })}>
+                  Message {post.content.user.username}
+                </li>
+              ) : (
+                <li>Delete post</li>
+              )}
+            </ul>
+          </div>
         )}
-        {isOptionsVisible && <div>dropdown here. chat with {post.content.user.username}</div>}
       </div>
-      <p>{isModifiable ? 'borrowed/close' : null}</p>
+      {isModifiable && <Button name="Borrowed" onButtonClick={() => console.log('update status here')} />}
       <p>{post.content.text}</p>
-      <span>{post.status}</span>
+      {post.status !== 'TO_BORROW' && <img src="/handshake.svg" alt="borrowed" width="20" />}
       <div onClick={() => openComments(post._id)}>
         <img src="/speech-bubble.svg" alt="comments" width="15" />
         <span>{post.comments.length}</span>
@@ -84,8 +98,9 @@ const Post = ({ post, isModifiable }) => {
           {loading ? (
             <p>loading</p>
           ) : (
-            comments.map(({ text, user: { username }, createdAt }) => (
-              <div key={createdAt}>
+            comments.map(({ text, user: { username, userImage }, createdAt }, index) => (
+              <div key={`${index}-${createdAt}`}>
+                <Avatar src={userImage} alt={username} size="small" />
                 <p>{username}</p>
                 <p>{text}</p>
                 <p>{createdAt}</p>
