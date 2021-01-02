@@ -1,0 +1,23 @@
+.button {
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 15px;
+  background: #ec823c;
+  color: white;
+  border-style: none;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &--green {
+    background: #15a793;
+    color: black;
+  }
+
+  &--red {
+    background: rgb(230, 70, 70);
+    color: white;
+  }
+}

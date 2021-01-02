@@ -1,4 +1,4 @@
-import styles from './styles.module.scss';
+import styles from './login.module.scss';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery, useMutation } from '@apollo/react-hooks';

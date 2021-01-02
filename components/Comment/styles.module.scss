@@ -1,0 +1,41 @@
+.comment {
+  background: #f9f9f9;
+  padding: 15px;
+  border-top: 1px solid #e9e9e9;
+
+  &__addComment {
+    display: flex;
+    align-items: center;
+    padding-bottom: 15px;
+
+    textarea {
+      margin-left: 10px;
+    }
+  }
+
+  &__element {
+    white-space: pre-wrap;
+    padding: 15px 0;
+    border-top: 1px solid #e9e9e9;
+
+    &_avatar {
+      display: flex;
+      justify-content: space-between;
+
+      & > div {
+        display: flex;
+        align-items: center;
+
+        span {
+          color: grey;
+          font-size: 14px;
+        }
+      }
+    }
+
+    &_createdAt {
+      color: grey;
+      font-size: 10px;
+    }
+  }
+}

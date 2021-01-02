@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from '@apollo/react-hooks';
 import { useState, useEffect, useContext } from 'react';
+import { useRouter } from 'next/router';
 import Autocomplete from 'react-google-autocomplete';
 import gql from 'graphql-tag';
 import withLayout from 'components/Layout';
@@ -8,17 +9,20 @@ import Button from 'components/Button';
 import Input from 'components/Input';
 import Avatar from 'components/Avatar';
 import Modal from 'components/Modal';
+import Tabs from 'components/Tabs';
 import UserContext from 'components/UserContext';
 
 import styles from './styles.module.scss';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('All');
   const [activePosts, setActivePosts] = useState([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [fieldsToUpdate, setFieldsToUpdate] = useState({});
+  const [updateFail, setUpdateFail] = useState(null);
 
   const { user } = useContext(UserContext);
+  const router = useRouter();
 
   const GET_USER_POSTS = gql`
     query {
@@ -29,8 +33,12 @@ const Dashboard = () => {
           createdAt
           user {
             username
+            displayName
+            userImage
           }
+          image
         }
+        isUrgent
         status
         comments {
           text
@@ -54,13 +62,20 @@ const Dashboard = () => {
 
   const { loading, error, data } = useQuery(GET_USER_POSTS);
   const [updateUser] = useMutation(UPDATE_USER, {
-    onCompleted: data => console.log(data),
+    onCompleted: data => {
+      if (data.updateUser.ok) {
+        setIsEditingProfile(false);
+        router.reload();
+      } else {
+        setUpdateFail('true');
+      }
+    },
   });
 
   useEffect(() => {
     if (data) {
       const filtered = data.userPost.filter(({ status }) => status !== 'TO_BORROW');
-      activeTab === 'all' ? setActivePosts(data.userPost) : setActivePosts(filtered);
+      activeTab === 'All' ? setActivePosts(data.userPost) : setActivePosts(filtered);
     }
   }, [activeTab, data]);
 
@@ -78,16 +93,22 @@ const Dashboard = () => {
   const handleUpdateUser = () => {
     if (Object.keys(fieldsToUpdate).length) {
       updateUser({ variables: { fieldsToUpdate } });
+      setUpdateStatus('loading');
     }
   };
 
   return (
     <div className={styles.dashboard}>
       {user && (
-        <div>
-          <Avatar src={user.userImage} alt={user.username} size="medium" />
-          <h2>{user.displayName}</h2>
-          <p>@{user.username}</p>
+        <div className={styles.dashboard__profile}>
+          <div className={styles.dashboard__profile_header}>
+            <Avatar src={user.userImage} alt={user.username} size="large" />
+            <div>
+              <h2>{user.displayName}</h2>
+              <p>@{user.username}</p>
+            </div>
+          </div>
+          // TODO: add how many posts user has and how many are borrowed
           <Button name="Edit profile" onButtonClick={() => setIsEditingProfile(true)} />
         </div>
       )}
@@ -100,20 +121,28 @@ const Dashboard = () => {
           onSave={handleUpdateUser}
         >
           <div className={styles.dashboard__edit}>
-            <Avatar
-              src={user.userImage}
-              alt={user.username}
-              size="medium"
-              isModifiable={true}
-              onFileUploaded={url => setFieldsToUpdate(prev => ({ ...prev, userImage: url }))}
-            />
+            {updateFail === 'true' && <p>Error while updating. Please try again.</p>}
+            <div className={styles.dashboard__edit_avatar}>
+              <Avatar
+                src={user.userImage}
+                alt={user.username}
+                size="large"
+                isModifiable={true}
+                onFileConversion={base64 => {
+                  setFieldsToUpdate(prev => ({ ...prev, userImage: base64 }));
+                }}
+              />
+            </div>
 
-            <Autocomplete
-              style={{ width: '90%' }}
-              types={['address']}
-              defaultValue={(user.location && user.location.address) || ''}
-              onPlaceSelected={place => setLatLng(place)}
-            />
+            <div className={styles.dashboard__edit_locationInput}>
+              <label>Location</label>
+              <Autocomplete
+                style={{ width: '90%' }}
+                types={['address']}
+                defaultValue={(user.location && user.location.address) || ''}
+                onPlaceSelected={place => setLatLng(place)}
+              />
+            </div>
 
             <Input
               name="Display name"
@@ -131,10 +160,8 @@ const Dashboard = () => {
         </Modal>
       )}
 
-      <div>
-        <span onClick={() => setActiveTab('all')}>All</span>
-        <span onClick={() => setActiveTab('borrowed')}>Borrowed</span>
-      </div>
+      <Tabs tabs={['All', 'Borrowed']} active={activeTab} onTabClick={e => setActiveTab(e)} />
+
       <div>
         {loading ? 'loading' : activePosts.map(post => <Post key={post._id} post={post} isModifiable={true} />)}
       </div>

@@ -24,9 +24,11 @@ const Modal = ({ header, isModalVisible, onModalClose, hasSaveButton, onSave, ch
     isVisible && (
       <div className={styles.modal}>
         <div ref={ref} className={styles.modal__content}>
-          <div>
-            <img src="/close.svg" alt="close" onClick={close} />
-            <h2>{header}</h2>
+          <div className={styles.modal__header}>
+            <div>
+              <img src="/close.svg" alt="close" width="15" onClick={close} />
+              <h2>{header}</h2>
+            </div>
             {hasSaveButton && <Button name="Save" onButtonClick={onSave} />}
           </div>
           {children}

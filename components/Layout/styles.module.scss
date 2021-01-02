@@ -1,5 +1,11 @@
 .layout {
   display: grid;
   grid-template-columns: 1fr 3fr;
-  padding: 0 100px;
+  padding: 0 170px;
+
+  &__main {
+    padding: 30px 50px;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
 }

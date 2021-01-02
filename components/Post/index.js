@@ -5,13 +5,14 @@ import gql from 'graphql-tag';
 import { useRouter } from 'next/router';
 import Button from 'components/Button';
 import Avatar from 'components/Avatar';
+import Flag from 'components/Flag';
+import Comment from 'components/Comment';
 import UserContext from 'components/UserContext';
 import { dateTimeFormatter } from 'utils/functions';
 
 const Post = ({ post, isModifiable }) => {
   const [isCommentFormVisible, setIsCommentFormVisible] = useState(false);
   const [isOptionsVisible, setIsOptionsVisible] = useState(false);
-  const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
 
   const { user } = useContext(UserContext);
@@ -25,7 +26,27 @@ const Post = ({ post, isModifiable }) => {
         createdAt
         user {
           username
+          userImage
+          displayName
         }
+      }
+    }
+  `;
+
+  const UPDATE_POST_STATUS = gql`
+    mutation UpdatePostStatus($id: String!) {
+      updatePostStatus(id: $id) {
+        ok
+        message
+      }
+    }
+  `;
+
+  const REMOVE_POST = gql`
+    mutation RemovePost($id: String!) {
+      removePost(id: $id) {
+        ok
+        message
       }
     }
   `;
@@ -38,6 +59,7 @@ const Post = ({ post, isModifiable }) => {
         user {
           username
           userImage
+          displayName
         }
       }
     }
@@ -51,68 +73,72 @@ const Post = ({ post, isModifiable }) => {
     onCompleted: data => setComments(prev => [...prev, data.postComment]),
   });
 
-  const handlePostComment = () => {
-    postComment({ variables: { text: comment, createdAt: dateTimeFormatter(new Date()), id: post._id } });
-  };
+  const [updatePostStatus] = useMutation(UPDATE_POST_STATUS, {
+    onCompleted: data => router.reload(),
+  });
+
+  const [removePost] = useMutation(REMOVE_POST, {
+    onCompleted: data => router.reload(),
+  });
 
   const openComments = id => {
     getComments({ variables: { id } });
-    setIsCommentFormVisible(true);
+    setIsCommentFormVisible(!isCommentFormVisible);
   };
 
   return (
     <div className={styles.post}>
-      <div className={styles.post__avatar}>
-        <Avatar src={post.content.user.userImage} alt={post.content.user.username} />
+      <div className={styles.post__content}>
+        <div className={styles.post__header}>
+          <div className={styles.post__avatar}>
+            <Avatar src={post.content.user.userImage} alt={post.content.user.username} size="small" />
 
-        <div>
-          <p>{post.content.user.username}</p>
-          <span>{post.content.createdAt}</span>
-        </div>
-
-        <img src="/more.svg" alt="options" width="10" onClick={() => setIsOptionsVisible(!isOptionsVisible)} />
-
-        {isOptionsVisible && (
-          <div>
-            <ul>
-              {(user && user.username) !== post.content.user.username ? (
-                <li onClick={() => router.push({ pathname: '/chat', query: { with: post.content.user.username } })}>
-                  Message {post.content.user.username}
-                </li>
-              ) : (
-                <li>Delete post</li>
-              )}
-            </ul>
+            <div className={styles.post__avatar_name}>
+              <p>{post.content.user.displayName}</p>
+              <span>@{post.content.user.username}</span>
+            </div>
           </div>
+
+          <div className={styles.post__flags}>
+            {post.isUrgent && <Flag name="urgent" />}
+            {post.status === 'BORROWED' && <Flag name="borrowed" />}
+          </div>
+        </div>
+        // TODO: borrowed and delete post require another modal to confirm action before proceed
+        {isModifiable && post.status !== 'BORROWED' && (
+          <Button
+            name="Borrowed"
+            theme="green"
+            onButtonClick={() => updatePostStatus({ variables: { id: post._id } })}
+          />
         )}
-      </div>
-      {isModifiable && <Button name="Borrowed" onButtonClick={() => console.log('update status here')} />}
-      <p>{post.content.text}</p>
-      {post.status !== 'TO_BORROW' && <img src="/handshake.svg" alt="borrowed" width="20" />}
-      <div onClick={() => openComments(post._id)}>
-        <img src="/speech-bubble.svg" alt="comments" width="15" />
-        <span>{post.comments.length}</span>
+        {isModifiable && (
+          <Button name="Delete post" theme="red" onButtonClick={() => removePost({ variables: { id: post._id } })} />
+        )}
+        {(user && user.username) !== post.content.user.username && (
+          <Button
+            name="Message"
+            onButtonClick={() => router.push({ pathname: '/chat', query: { with: post.content.user.username } })}
+          />
+        )}
+        <p className={styles.post__text}>{post.content.text}</p>
+        {post.content.image && <img src={post.content.image} alt="post image" className={styles.post__image} />}
+        <div className={styles.post__actions}>
+          <span className={styles.post__actions_date}>{post.content.createdAt}</span>
+          <div className={styles.post__actions_comment} onClick={() => openComments(post._id)}>
+            <img src="/speech-bubble.svg" alt="comments" width="17" />
+            <span>{post.comments.length}</span>
+          </div>
+        </div>
       </div>
       {isCommentFormVisible && (
-        <>
-          {loading ? (
-            <p>loading</p>
-          ) : (
-            comments.map(({ text, user: { username, userImage }, createdAt }, index) => (
-              <div key={`${index}-${createdAt}`}>
-                <Avatar src={userImage} alt={username} size="small" />
-                <p>{username}</p>
-                <p>{text}</p>
-                <p>{createdAt}</p>
-              </div>
-            ))
-          )}
-
-          <div>
-            <textarea onChange={e => setComment(e.target.value)} />
-            <Button name="Add a comment" onButtonClick={handlePostComment} />
-          </div>
-        </>
+        <Comment
+          comments={comments}
+          loading={loading}
+          handlePostComment={comment =>
+            postComment({ variables: { text: comment, createdAt: dateTimeFormatter(new Date()), id: post._id } })
+          }
+        />
       )}
     </div>
   );

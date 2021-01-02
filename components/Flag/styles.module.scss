@@ -1,0 +1,25 @@
+.flag {
+  width: 45px;
+  height: 45px;
+  padding: 7px;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 2px 10px 0 rgba(35, 35, 35, 0.1);
+  background: #f9f9f9;
+
+  img {
+    position: absolute;
+  }
+
+  &--urgent img {
+    width: 56%;
+    top: 9px;
+    left: 10px;
+  }
+
+  &--borrowed img {
+    width: 65%;
+    top: 7px;
+    left: 8px;
+  }
+}

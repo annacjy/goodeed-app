@@ -5,7 +5,6 @@ import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client
 import { setContext } from '@apollo/client/link/context';
 import UserContext from 'components/UserContext';
 import Cookies from 'js-cookie';
-import 'styles/globals.css';
 
 const httpLink = createHttpLink({
   uri: `${process.env.APP_URL}/api/graphql`,

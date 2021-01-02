@@ -109,6 +109,7 @@ function Chat() {
           chatHistory.map(({ matchedUser, username, _id, lastMessage }) => (
             <div
               key={_id}
+              className={`${matchedUser.username === router.query.with && styles['chatPage__history--activeChat']}`}
               onClick={() =>
                 handleChatParticipants({
                   matchedUser,
@@ -118,7 +119,7 @@ function Chat() {
               }
             >
               <div className={styles.chatPage__history_avatar}>
-                <Avatar src={matchedUser.userImage} alt={matchedUser.username} size="medium" />
+                <Avatar src={matchedUser.userImage} alt={matchedUser.username} size="small" />
                 <div className={styles.chatPage__history_message}>
                   <h1>{matchedUser.displayName}</h1>
                   {lastMessage && <p>{lastMessage.message}</p>}
@@ -136,7 +137,7 @@ function Chat() {
               <Avatar
                 src={chatParticipants.chatPerson.userImage}
                 alt={chatParticipants.chatPerson.username}
-                size="medium"
+                size="small"
               />
               <h1>{chatParticipants.chatPerson.displayName}</h1>
             </div>

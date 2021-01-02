@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { AuthenticationError } from 'apollo-server-core';
 import { calcDistance } from 'utils/functions';
+let cloudinary = require('cloudinary').v2;
 
 const { BCRYPT_SALT_ROUNDS, JWT_SECRET_KEY } = process.env;
 
@@ -48,7 +49,7 @@ const resolvers = {
         .find()
         .toArray();
 
-      return allPosts.filter(({ content }) => content.user.username === loggedUser.username);
+      return allPosts.filter(({ content }) => content.user.username === loggedUser.username).reverse();
     },
     comments: async (_parent, { id }, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
@@ -162,10 +163,19 @@ const resolvers = {
 
       const user = await db.collection('users').findOne({ username: loggedUser.username });
 
-      try {
-        await db.collection('users').findOneAndUpdate({ _id: user._id }, { $set: { ...user, ...fieldsToUpdate } });
+      let image = null;
+      if (fieldsToUpdate.userImage) {
+        await cloudinary.uploader.upload(fieldsToUpdate.userImage, function(error, result) {
+          image = result.url;
+        });
+      }
 
-        return { ok: true, message: 'Update successful' };
+      try {
+        const payload = await db
+          .collection('users')
+          .findOneAndUpdate({ _id: user._id }, { $set: { ...user, ...fieldsToUpdate, userImage: image } });
+
+        return payload.ok === 1 && { ok: true, message: 'Update successful' };
       } catch (error) {
         return { ok: false, message: 'Something went wrong' };
       }
@@ -174,20 +184,30 @@ const resolvers = {
     createPost: async (_parent, args, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
 
-      const { text, createdAt } = args;
+      const { text, createdAt, isUrgent, image } = args;
 
       const Posts = db.collection('posts');
 
-      const { location } = await db.collection('users').findOne({ username: loggedUser.username });
+      const { username, displayName, userImage, location } = await db
+        .collection('users')
+        .findOne({ username: loggedUser.username });
+
+      let postImage = null;
+
+      if (image) {
+        await cloudinary.uploader.upload(image, function(error, result) {
+          postImage = result.url;
+        });
+      }
 
       const newPost = {
         content: {
           text,
-          user: {
-            username: loggedUser.username,
-          },
+          user: { username, displayName, userImage },
+          image: postImage,
           createdAt,
         },
+        ...(isUrgent && { isUrgent }),
         location,
         status: 'TO_BORROW',
         comments: [],
@@ -207,10 +227,14 @@ const resolvers = {
 
       const postCurrentComments = await Posts.findOne({ _id: objId });
 
+      const { username, displayName, userImage } = await db
+        .collection('users')
+        .findOne({ username: loggedUser.username });
+
       const newComment = {
         text,
         createdAt,
-        user: { username: loggedUser.username },
+        user: { username, displayName, userImage },
       };
 
       await Posts.findOneAndUpdate(
@@ -220,8 +244,19 @@ const resolvers = {
 
       return newComment;
     },
-    updatePostStatus: async (_parent, args, { db, loggedUser }, _info) => {
+    updatePostStatus: async (_parent, { id }, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
+      const objId = new ObjectId(id);
+
+      try {
+        const payload = await db
+          .collection('posts')
+          .findOneAndUpdate({ _id: objId }, { $set: { status: 'BORROWED', isUrgent: false } });
+        return payload.ok === 1 && { ok: true, message: 'Update successful' };
+      } catch (error) {
+        return { ok: false, message: 'Something went wrong' };
+      }
     },
 
     // <---- CHATS ---->

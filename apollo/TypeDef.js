@@ -50,7 +50,8 @@ const TypeDefs = gql`
   # <---- POSTS ----->
   type Post {
     text: String
-    user: User
+    user: BasicUserInfo
+    image: String
     createdAt: String
   }
 
@@ -58,6 +59,7 @@ const TypeDefs = gql`
     _id: String!
     content: Post
     status: String
+    isUrgent: Boolean
     comments: [Post]
     location: Location
   }
@@ -70,13 +72,13 @@ const TypeDefs = gql`
     createdAt: String!
   }
 
-  type ChatUserInfo {
+  type BasicUserInfo {
     username: String!
     displayName: String
     userImage: String
   }
 
-  input ChatUserInfoInput {
+  input BasicUserInfoInput {
     username: String!
     displayName: String
     userImage: String
@@ -84,7 +86,7 @@ const TypeDefs = gql`
 
   type MessageData {
     _id: String!
-    participants: [ChatUserInfo]
+    participants: [BasicUserInfo]
     username: String!
     messages: [Chat]
     lastUpdatedAt: String
@@ -98,7 +100,7 @@ const TypeDefs = gql`
     comments(id: String!): [Post]!
     chats: [MessageData]!
     storedMessages(_id: String!): MessageData!
-    chatUser(username: String!): ChatUserInfo!
+    chatUser(username: String!): BasicUserInfo!
   }
 
   # <---- MUTATION ----->
@@ -109,11 +111,11 @@ const TypeDefs = gql`
     # <---- User ----->
     updateUser(fieldsToUpdate: UserInput!): StatusPayload
     # <---- Posts ----->
-    createPost(text: String!, createdAt: String!): Posts
+    createPost(text: String!, isUrgent: Boolean, image: String, createdAt: String!): Posts
     postComment(text: String!, createdAt: String!, id: String!): Post
-    updatePostStatus: Post
+    updatePostStatus(id: String!): StatusPayload
     # <---- Chat ----->
-    postMessage(to: ChatUserInfoInput!, message: String!, createdAt: String!): Chat
+    postMessage(to: BasicUserInfoInput!, message: String!, createdAt: String!): Chat
   }
 `;
 

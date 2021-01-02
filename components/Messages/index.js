@@ -27,7 +27,7 @@ const Messages = ({ chatParticipants }) => {
   `;
 
   const POST_MESSAGE = gql`
-    mutation PostMessage($to: ChatUserInfoInput!, $message: String!, $createdAt: String!) {
+    mutation PostMessage($to: BasicUserInfoInput!, $message: String!, $createdAt: String!) {
       postMessage(to: $to, message: $message, createdAt: $createdAt) {
         message
       }
@@ -132,11 +132,12 @@ const Messages = ({ chatParticipants }) => {
             : 'no messages'}
         </div>
       )}
-      <div>
+      <div className={styles.chats__inputMessage}>
         <Input
           name="Message"
           type="text"
           showLabel={false}
+          placeholder="Enter your message here"
           value={message}
           onInputChange={val => setMessage(val)}
           onEnter={e => {
@@ -144,7 +145,10 @@ const Messages = ({ chatParticipants }) => {
             sendMessage();
           }}
         />
-        <Button name="Send" onButtonClick={sendMessage} />
+        <div className={styles.chats__sendButton}>
+          <img src="/send.svg" alt="send message" onClick={sendMessage} />
+        </div>
+        {/* <Button name="Send" onButtonClick={sendMessage} /> */}
       </div>
     </div>
   );
