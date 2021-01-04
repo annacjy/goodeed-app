@@ -1,13 +1,74 @@
+@import 'styles/variables.scss';
+
 .login {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   width: 100%;
   height: 100vh;
+  display: flex;
+  padding: 30px 100px;
+  align-items: center;
+  justify-content: center;
 
-  &__info {
+  &__background {
+    width: 80%;
+    margin-bottom: 60px;
   }
 
+  &__info {
+    & > div {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      font-size: 18px;
+
+      img {
+        margin-right: 15px;
+      }
+    }
+  }
   &__form {
-    background: #cebebe;
+    width: 60%;
+
+    button {
+      width: 100%;
+      height: 50px;
+    }
+  }
+
+  &__inputs {
+    & > div {
+      margin-bottom: 25px;
+    }
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    margin-bottom: 60px;
+
+    h1 {
+      margin-left: 15px;
+    }
+  }
+
+  &__validation {
+    display: flex;
+    align-items: center;
+    color: #f86d6d;
+    margin-bottom: 15px;
+
+    img {
+      margin-right: 10px;
+    }
+  }
+
+  &__prompt {
+    cursor: pointer;
+    font-style: italic;
+    margin-top: 20px;
+
+    &:hover {
+      color: $color-primary;
+      text-decoration: underline;
+    }
   }
 }

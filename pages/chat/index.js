@@ -7,6 +7,7 @@ import UserContext from 'components/UserContext';
 import withLayout from 'components/Layout';
 import Messages from 'components/Messages';
 import Avatar from 'components/Avatar';
+import LoadingSkeleton from 'components/LoadingSkeleton';
 
 import styles from './styles.module.scss';
 
@@ -99,7 +100,7 @@ function Chat() {
     }
   }, [router, contextUser, data, initialFetch]);
 
-  if (loading) return <p>Loading</p>;
+  if (loading) return <LoadingSkeleton type="chat" />;
   if (error) return <p>Error</p>;
 
   return (
@@ -125,7 +126,7 @@ function Chat() {
                   {lastMessage && <p>{lastMessage.message}</p>}
                 </div>
               </div>
-              <p>{lastMessage && lastMessage.createdAt}</p>
+              <p className={styles.chatPage__history_time}>{lastMessage && lastMessage.createdAt}</p>
             </div>
           ))}
       </div>
@@ -144,7 +145,10 @@ function Chat() {
             <Messages chatParticipants={chatParticipants} />
           </>
         ) : (
-          'no participant selected'
+          <div className={styles.chatPage__noParticipants}>
+            <h1>You don't have a message selected</h1>
+            <p>Please select someone you would like to chat with</p>
+          </div>
         )}
       </div>
     </section>

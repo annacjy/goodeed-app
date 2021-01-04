@@ -1,3 +1,5 @@
+@import 'styles/variables.scss';
+
 .chatBubble {
   position: relative;
   border-radius: 7px;
@@ -19,27 +21,27 @@
   }
 
   &--left {
-    background: #f6e3da;
+    background: #b5e4e4;
     color: #4d4d4d;
 
     &::after {
       left: 0;
       border-left: 0;
-      border-right-color: #f6e3da;
-      border-left-color: #f6e3da;
+      border-right-color: #b5e4e4;
+      border-left-color: #b5e4e4;
       margin-left: -11px;
     }
   }
 
   &--right {
-    background: #ec8d5d;
+    background: #3d9c9c;
     color: white;
 
     &::after {
       right: 0;
       border-right: 0;
       margin-right: -11px;
-      border-left-color: #ec8d5d;
+      border-left-color: #3d9c9c;
     }
   }
 

@@ -1,11 +1,12 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Input from 'components/Input';
 import Button from 'components/Button';
 import Post from 'components/Post';
 import Avatar from 'components/Avatar';
-import Tabs from 'components/Tabs';
 import TextArea from 'components/TextArea';
+import LoadingSkeleton from 'components/LoadingSkeleton';
+import Error from 'components/Error';
 import UserContext from 'components/UserContext';
 import withLayout from 'components/Layout';
 import { useQuery, useMutation } from '@apollo/react-hooks';
@@ -17,43 +18,46 @@ import { dateTimeFormatter } from 'utils/functions';
 const Home = () => {
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState('');
+  const [pageInfo, setPageInfo] = useState(null);
   const [previewFile, setPreviewFile] = useState('');
   const [imageToBeUploaded, setImageToBeUploaded] = useState(null);
-  const [isPostUrgent, setIsPostUrgent] = useState(false);
-  const [activeTab, setActiveTab] = useState('All (by distance)');
 
-  const { user } = useContext(UserContext);
+  const [user] = useContext(UserContext);
 
   const GET_POSTS = gql`
-    query {
-      posts {
-        _id
-        content {
-          text
-          createdAt
-          user {
-            username
-            userImage
-            displayName
-          }
-          image
+    query GetPosts($cursor: String) {
+      posts(cursor: $cursor) {
+        pageInfo {
+          nextCursor
         }
-        isUrgent
-        status
-        comments {
-          text
-          user {
-            username
+        data {
+          _id
+          content {
+            text
+            createdAt
+            user {
+              username
+              userImage
+              displayName
+            }
+            image
           }
-          createdAt
+          status
+          comments {
+            text
+            user {
+              username
+            }
+            createdAt
+          }
         }
       }
     }
   `;
 
   const CREATE_POST = gql`
-    mutation CreatePost($text: String!, $isUrgent: Boolean, $image: String, $createdAt: String!) {
-      createPost(text: $text, isUrgent: $isUrgent, image: $image, createdAt: $createdAt) {
+    mutation CreatePost($text: String!, $image: String, $createdAt: String!) {
+      createPost(text: $text, image: $image, createdAt: $createdAt) {
         _id
         content {
           text
@@ -65,7 +69,6 @@ const Home = () => {
           }
           image
         }
-        isUrgent
         status
         comments {
           text
@@ -78,9 +81,33 @@ const Home = () => {
     }
   `;
 
-  const { loading, error } = useQuery(GET_POSTS, {
-    onCompleted: data => setPosts(data.posts),
+  const { loading, error, fetchMore } = useQuery(GET_POSTS, {
+    fetchPolicy: 'network-only',
+    onCompleted: data => {
+      setPosts(data.posts.data);
+      setPageInfo(data.posts.pageInfo);
+    },
   });
+
+  const onScroll = e => {
+    // if div is at the bottom, fetch more posts
+    if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
+      // if there are no more posts to fetch, dont do anything
+      if (!pageInfo.nextCursor) return;
+      fetchMorePosts();
+
+      return;
+    }
+  };
+
+  const fetchMorePosts = async () => {
+    const fetchedMore = await fetchMore({
+      variables: { cursor: pageInfo.nextCursor },
+    });
+
+    setPageInfo(fetchedMore.data.posts.pageInfo);
+    setPosts(previousPosts => [...previousPosts, ...fetchedMore.data.posts.data]);
+  };
 
   const [createPost] = useMutation(CREATE_POST, {
     onCompleted: data =>
@@ -96,13 +123,7 @@ const Home = () => {
       variables: {
         text: newPost,
         image: imageToBeUploaded,
-        ...(isPostUrgent && { isUrgent: true }),
         createdAt: dateTimeFormatter(new Date()),
-      },
-      update: (cache, { data: { createPost } }) => {
-        const data = cache.readQuery({ query: GET_POSTS });
-        const updatedData = [...data.posts, createPost];
-        cache.writeQuery({ query: GET_POSTS }, updatedData);
       },
     });
 
@@ -110,7 +131,6 @@ const Home = () => {
     setPreviewFile('');
     setNewPost('');
     setImageToBeUploaded('');
-    setIsPostUrgent(false);
   };
 
   const handleFileUpload = e => {
@@ -132,12 +152,11 @@ const Home = () => {
     };
   };
 
-  // TODO: filter by urgent
-
-  if (error) return <p>{error.message}</p>;
+  if (error) return <Error errorMessage={error.message} />;
+  if (loading) return <LoadingSkeleton type="posts" />;
 
   return (
-    <section className={styles.home}>
+    <section onScroll={onScroll} className={styles.home}>
       {user && (
         <>
           {!user.location && (
@@ -166,18 +185,6 @@ const Home = () => {
                   <input id="uploadFile" type="file" accept="image/*" onChange={handleFileUpload} />
                   <img src="/camera.svg" alt="media upload" />
                 </label>
-
-                <img
-                  src={isPostUrgent ? '/urgent-marked.svg' : '/urgent.svg'}
-                  alt="urgent"
-                  className={`${styles.home__addPost_urgent} ${
-                    styles[`home__addPost_urgent${isPostUrgent && '--active'}`]
-                  }`}
-                  onClick={() => setIsPostUrgent(!isPostUrgent)}
-                />
-                {isPostUrgent && (
-                  <span style={{ color: '#ec483c', marginLeft: '5px' }}>This post is flagged as urgent.</span>
-                )}
               </div>
               <Button name="Post" onButtonClick={addNewPost} />
             </div>
@@ -185,8 +192,11 @@ const Home = () => {
         </>
       )}
 
-      <Tabs tabs={['All (by distance)', 'Urgent']} active={activeTab} onTabClick={e => setActiveTab(e)} />
-      <div>{loading ? 'loading' : posts.map(post => <Post key={post._id} post={post} />)}</div>
+      <div>
+        {posts.map(post => (
+          <Post key={post._id} post={post} />
+        ))}
+      </div>
     </section>
   );
 };

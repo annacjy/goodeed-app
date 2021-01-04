@@ -1,13 +1,20 @@
+@import 'styles/variables.scss';
+
 .chats {
   display: flex;
   flex-direction: column-reverse;
   max-height: 65vh;
   overflow-y: auto;
-  // margin: 20px 0;
-  // padding: 0 20px;
+  margin-top: 20px;
+  padding: 0 20px;
 
   &--right {
     align-self: flex-end;
+  }
+
+  &__empty {
+    text-align: center;
+    margin-top: 30px;
   }
 
   &__inputMessage {
@@ -17,7 +24,7 @@
   }
 
   &__sendButton {
-    background: #ffce00;
+    background: $color-primary;
     display: flex;
     justify-content: center;
     align-items: center;

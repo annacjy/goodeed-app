@@ -18,27 +18,54 @@ const resolvers = {
 
       return await db.collection('users').findOne({ username: user });
     },
-    posts: async (_parent, _args, { db, loggedUser }, _info) => {
+    posts: async (_parent, { cursor }, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
 
       const { location } = await db.collection('users').findOne({ username: loggedUser.username });
 
-      const posts = await db
-        .collection('posts')
-        .find()
-        .toArray();
+      let posts;
 
-      const postsByRecent = posts.reverse();
+      if (cursor) {
+        const postCursor = await db
+          .collection('posts')
+          .find({ _id: { $lt: new ObjectId(cursor) } })
+          .sort({ _id: -1 })
+          .limit(5);
 
-      if (location) {
-        const compareDistance = (postLat, postLng) => calcDistance(postLat, postLng, location.lat, location.lng);
+        const hasNext = await postCursor.hasNext();
 
-        // sort by distance (closest -> farthest)
-        return postsByRecent.sort(
-          (a, b) => compareDistance(a.location.lat, a.location.lng) - compareDistance(b.location.lat, b.location.lng)
-        );
+        posts = hasNext ? await postCursor.toArray() : [];
       } else {
-        return postsByRecent;
+        posts = await db
+          .collection('posts')
+          .find()
+          .sort({ _id: -1 })
+          .limit(5)
+          .toArray();
+      }
+
+      if (posts.length) {
+        const nextCursor = posts[posts.length - 1]._id;
+
+        const pageInfo = {
+          nextCursor,
+        };
+
+        if (location) {
+          const compareDistance = (postLat, postLng) => calcDistance(postLat, postLng, location.lat, location.lng);
+          // sort by distance (closest -> farthest)
+          return {
+            pageInfo,
+            data: posts.sort(
+              (a, b) =>
+                compareDistance(a.location.lat, a.location.lng) - compareDistance(b.location.lat, b.location.lng)
+            ),
+          };
+        } else {
+          return { pageInfo, data: posts };
+        }
+      } else {
+        return { pageInfo: { nextCursor: null }, data: posts };
       }
     },
     userPost: async (_parent, _args, { db, loggedUser }, _info) => {
@@ -47,9 +74,10 @@ const resolvers = {
       const allPosts = await db
         .collection('posts')
         .find()
+        .sort({ _id: -1 })
         .toArray();
 
-      return allPosts.filter(({ content }) => content.user.username === loggedUser.username).reverse();
+      return allPosts.filter(({ content }) => content.user.username === loggedUser.username);
     },
     comments: async (_parent, { id }, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
@@ -147,7 +175,16 @@ const resolvers = {
           return jwt.verify(token, JWT_SECRET_KEY, (error, decoded) => {
             return error
               ? { status: { ok: false, message: 'Something went wrong. Please try again' } }
-              : { status: { ok: true }, token, username: decoded.username };
+              : {
+                  status: { ok: true },
+                  token,
+                  user: {
+                    username: decoded.username,
+                    displayName: user.displayName,
+                    userImage: user.userImage,
+                    location: user.location,
+                  },
+                };
           });
         } else {
           return { status: { ok: false, message: 'Invalid password.' } };
@@ -184,7 +221,7 @@ const resolvers = {
     createPost: async (_parent, args, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
 
-      const { text, createdAt, isUrgent, image } = args;
+      const { text, createdAt, image } = args;
 
       const Posts = db.collection('posts');
 
@@ -207,7 +244,6 @@ const resolvers = {
           image: postImage,
           createdAt,
         },
-        ...(isUrgent && { isUrgent }),
         location,
         status: 'TO_BORROW',
         comments: [],
@@ -250,10 +286,21 @@ const resolvers = {
       const objId = new ObjectId(id);
 
       try {
-        const payload = await db
-          .collection('posts')
-          .findOneAndUpdate({ _id: objId }, { $set: { status: 'BORROWED', isUrgent: false } });
+        const payload = await db.collection('posts').findOneAndUpdate({ _id: objId }, { $set: { status: 'BORROWED' } });
         return payload.ok === 1 && { ok: true, message: 'Update successful' };
+      } catch (error) {
+        return { ok: false, message: 'Something went wrong' };
+      }
+    },
+    removePost: async (_parent, { id }, { db, loggedUser }, _info) => {
+      if (!loggedUser) throw new AuthenticationError('you must be logged in');
+
+      const objId = new ObjectId(id);
+
+      try {
+        const payload = await db.collection('posts').deleteOne({ _id: objId });
+
+        return payload.result.ok === 1 && { ok: true, message: 'Update successful' };
       } catch (error) {
         return { ok: false, message: 'Something went wrong' };
       }

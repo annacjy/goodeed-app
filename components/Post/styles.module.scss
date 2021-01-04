@@ -1,5 +1,6 @@
 .post {
   box-shadow: 0 2px 10px 0 rgba(35, 35, 35, 0.1);
+  background: #fdfdfd;
   margin-bottom: 30px;
 
   &__content {
@@ -31,7 +32,24 @@
   }
 
   &__flags {
-    display: flex;
+    margin-left: 15px;
+  }
+
+  &__actionButtons {
+    margin-top: 7px;
+
+    button {
+      margin-left: 15px;
+    }
+  }
+
+  &__confirmationModal {
+    text-align: center;
+    padding: 30px;
+
+    h2 {
+      margin-bottom: 20px;
+    }
   }
 
   &__text {

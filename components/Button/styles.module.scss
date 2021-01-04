@@ -1,9 +1,11 @@
+@import 'styles/variables.scss';
+
 .button {
   border-radius: 5px;
   padding: 10px 20px;
-  font-size: 15px;
-  background: #ec823c;
-  color: white;
+  font-size: 17px;
+  background: $color-primary;
+  color: $color-white;
   border-style: none;
   cursor: pointer;
 
@@ -12,12 +14,12 @@
   }
 
   &--green {
-    background: #15a793;
+    background: #89ffba;
     color: black;
   }
 
   &--red {
-    background: rgb(230, 70, 70);
+    background: #f86d6d;
     color: white;
   }
 }

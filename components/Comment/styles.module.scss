@@ -21,15 +21,26 @@
     &_avatar {
       display: flex;
       justify-content: space-between;
+      margin-bottom: 15px;
 
       & > div {
         display: flex;
         align-items: center;
+      }
+    }
 
-        span {
-          color: grey;
-          font-size: 14px;
-        }
+    &_userInfo {
+      margin-left: 10px;
+
+      p {
+        color: #252525;
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      span {
+        color: #626262;
+        font-size: 15px;
       }
     }
 

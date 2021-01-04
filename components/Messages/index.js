@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useLazyQuery, useMutation } from '@apollo/react-hooks';
 
 import Input from 'components/Input';
-import Button from 'components/Button';
+import LoadingSkeleton from 'components/LoadingSkeleton';
 import ChatBubble from 'components/ChatBubble';
 import styles from './styles.module.scss';
 
@@ -116,20 +116,24 @@ const Messages = ({ chatParticipants }) => {
   return (
     <div>
       {loading ? (
-        <div>Loading state</div>
+        <LoadingSkeleton type="messages" />
       ) : (
         <div className={styles.chats}>
-          {messages.length
-            ? messages.map(({ message, from, createdAt }, index) => {
-                const position = from === chatParticipants.user ? 'right' : 'left';
+          {messages.length ? (
+            messages.map(({ message, from, createdAt }, index) => {
+              const position = from === chatParticipants.user ? 'right' : 'left';
 
-                return (
-                  <div key={`${index}-${createdAt}`} className={styles[`chats--${position}`]}>
-                    <ChatBubble content={message} position={position} timeStamp={createdAt} />
-                  </div>
-                );
-              })
-            : 'no messages'}
+              return (
+                <div key={`${index}-${createdAt}`} className={styles[`chats--${position}`]}>
+                  <ChatBubble content={message} position={position} timeStamp={createdAt} />
+                </div>
+              );
+            })
+          ) : (
+            <div className={styles.chats__empty}>
+              <h2>Start your conversation.</h2>
+            </div>
+          )}
         </div>
       )}
       <div className={styles.chats__inputMessage}>

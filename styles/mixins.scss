@@ -1,0 +1,16 @@
+@mixin fontBold($size) {
+  font-size: #{$size}px;
+  font-family: CommissionerBold, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+@mixin fontRegular($size) {
+  font-size: #{$size}px;
+  font-family: CommissionerRegular, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+@mixin fontLight($size) {
+  font-size: #{$size}px;
+  font-family: CommissionerLight, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+@mixin fontThin($size) {
+  font-size: #{$size}px;
+  font-family: CommissionerThin, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}

@@ -10,6 +10,7 @@ import Input from 'components/Input';
 import Avatar from 'components/Avatar';
 import Modal from 'components/Modal';
 import Tabs from 'components/Tabs';
+import LoadingSkeleton from 'components/LoadingSkeleton';
 import UserContext from 'components/UserContext';
 
 import styles from './styles.module.scss';
@@ -20,8 +21,9 @@ const Dashboard = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [fieldsToUpdate, setFieldsToUpdate] = useState({});
   const [updateFail, setUpdateFail] = useState(null);
+  const [userPostsStats, setUserPostsStats] = useState(null);
 
-  const { user } = useContext(UserContext);
+  const [user] = useContext(UserContext);
   const router = useRouter();
 
   const GET_USER_POSTS = gql`
@@ -38,7 +40,6 @@ const Dashboard = () => {
           }
           image
         }
-        isUrgent
         status
         comments {
           text
@@ -76,6 +77,11 @@ const Dashboard = () => {
     if (data) {
       const filtered = data.userPost.filter(({ status }) => status !== 'TO_BORROW');
       activeTab === 'All' ? setActivePosts(data.userPost) : setActivePosts(filtered);
+
+      setUserPostsStats({
+        all: data.userPost.length,
+        borrowed: filtered.length,
+      });
     }
   }, [activeTab, data]);
 
@@ -97,20 +103,37 @@ const Dashboard = () => {
     }
   };
 
+  if (loading) return <LoadingSkeleton type="posts" />;
+
   return (
     <div className={styles.dashboard}>
-      {user && (
+      {user ? (
         <div className={styles.dashboard__profile}>
           <div className={styles.dashboard__profile_header}>
             <Avatar src={user.userImage} alt={user.username} size="large" />
-            <div>
-              <h2>{user.displayName}</h2>
-              <p>@{user.username}</p>
+            <div className={styles.dashboard__profile_userInfo}>
+              <div>
+                <h2>{user.displayName}</h2>
+                <p>@{user.username}</p>
+              </div>
+
+              {userPostsStats && (
+                <div className={styles.dashboard__profile_postStats}>
+                  <p>
+                    <strong>{userPostsStats.all}</strong> Posts
+                  </p>
+                  <p>
+                    <strong>{userPostsStats.borrowed}</strong> Borrowed
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-          // TODO: add how many posts user has and how many are borrowed
+
           <Button name="Edit profile" onButtonClick={() => setIsEditingProfile(true)} />
         </div>
+      ) : (
+        <LoadingSkeleton type="profile" />
       )}
       {isEditingProfile && (
         <Modal
@@ -162,8 +185,10 @@ const Dashboard = () => {
 
       <Tabs tabs={['All', 'Borrowed']} active={activeTab} onTabClick={e => setActiveTab(e)} />
 
-      <div>
-        {loading ? 'loading' : activePosts.map(post => <Post key={post._id} post={post} isModifiable={true} />)}
+      <div className={styles.dashboard__posts}>
+        {activePosts.map(post => (
+          <Post key={post._id} post={post} isModifiable={true} />
+        ))}
       </div>
     </div>
   );

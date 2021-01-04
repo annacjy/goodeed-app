@@ -30,7 +30,7 @@ const client = new ApolloClient({
 });
 
 function MyApp({ Component, pageProps }) {
-  const [userContext, setUserContext] = useState({});
+  const [user, setUser] = useState({});
 
   const GET_USER_QUERY = gql`
     query user($token: String!) {
@@ -56,13 +56,13 @@ function MyApp({ Component, pageProps }) {
         variables: { token },
       });
 
-      setUserContext({ user: response.data.user });
+      setUser(response.data.user);
     }
   }, []);
 
   return (
     <ApolloProvider client={client}>
-      <UserContext.Provider value={userContext}>
+      <UserContext.Provider value={[user, setUser]}>
         <Component {...pageProps} />
       </UserContext.Provider>
     </ApolloProvider>

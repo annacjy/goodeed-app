@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 
+import Logo from 'components/Logo';
 import styles from './styles.module.scss';
-import Button from 'components/Button';
 
 const SidebarNav = () => {
   const router = useRouter();
@@ -13,27 +13,27 @@ const SidebarNav = () => {
     router.replace('/');
   };
 
+  const links = [
+    { key: 'home', name: 'Home' },
+    { key: 'dashboard', name: 'Dashboard' },
+    { key: 'chat', name: 'Messages' },
+  ];
+
   return (
     <nav className={styles.nav}>
-      <img src="/help.svg" alt="goodeed logo" width="70" />
+      <Logo />
       <ul>
-        <li>
-          <Link href="/home">
-            <a>Home</a>
-          </Link>
-        </li>
-        <li>
-          <Link href="/dashboard">
-            <a>Dashboard</a>
-          </Link>
-        </li>
-        <li>
-          <Link href="/chat">
-            <a>Messages</a>
-          </Link>
-        </li>
-        <Button name="Add your post" />
-        <li onClick={handleLogout}>logout</li>
+        {links.map(link => (
+          <li
+            key={link.key}
+            className={`${styles.nav__link} ${styles[`nav__link--${router.pathname === `/${link.key}` && 'active'}`]}`}
+          >
+            <Link href={`/${link.key}`}>
+              <a>{link.name}</a>
+            </Link>
+          </li>
+        ))}
+        <li onClick={handleLogout}>Logout</li>
       </ul>
     </nav>
   );

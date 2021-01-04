@@ -44,7 +44,7 @@ const TypeDefs = gql`
   type AuthPayload {
     token: String
     status: StatusPayload
-    username: String
+    user: UserInfo
   }
 
   # <---- POSTS ----->
@@ -59,9 +59,17 @@ const TypeDefs = gql`
     _id: String!
     content: Post
     status: String
-    isUrgent: Boolean
     comments: [Post]
     location: Location
+  }
+
+  type PageInfo {
+    nextCursor: String
+  }
+
+  type PostsWithPageInfo {
+    pageInfo: PageInfo
+    data: [Posts!]
   }
 
   # <---- CHAT ----->
@@ -94,10 +102,16 @@ const TypeDefs = gql`
 
   # <---- QUERY ----->
   type Query {
+    # <---- User ----->
     user(token: String!): UserInfo!
     userPost: [Posts]!
-    posts: [Posts]!
+
+    # <---- Posts ----->
+    posts(cursor: String): PostsWithPageInfo!
+    userBorrowedPosts: [Posts]!
     comments(id: String!): [Post]!
+
+    # <---- Chats ----->
     chats: [MessageData]!
     storedMessages(_id: String!): MessageData!
     chatUser(username: String!): BasicUserInfo!
@@ -108,12 +122,16 @@ const TypeDefs = gql`
     # <---- Authentication ----->
     login(username: String!, password: String!): AuthPayload
     register(username: String!, password: String!): AuthPayload
+
     # <---- User ----->
     updateUser(fieldsToUpdate: UserInput!): StatusPayload
+
     # <---- Posts ----->
-    createPost(text: String!, isUrgent: Boolean, image: String, createdAt: String!): Posts
+    createPost(text: String!, image: String, createdAt: String!): Posts
     postComment(text: String!, createdAt: String!, id: String!): Post
     updatePostStatus(id: String!): StatusPayload
+    removePost(id: String!): StatusPayload
+
     # <---- Chat ----->
     postMessage(to: BasicUserInfoInput!, message: String!, createdAt: String!): Chat
   }

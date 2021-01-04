@@ -12,7 +12,7 @@ const socketHandler = (req, res) => {
       socket.on('join', roomName => {
         let split = roomName.split('--with--');
         let unique = [...new Set(split)].sort((a, b) => (a < b ? -1 : 1));
-        let updatedRoomName = unique.join('');
+        let updatedRoomName = `${unique[0]}--with--${unique[1]}`;
 
         Array.from(socket.rooms)
           .filter(it => it !== socket.id)

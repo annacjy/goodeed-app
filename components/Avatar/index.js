@@ -27,6 +27,8 @@ const Avatar = ({ src, alt, size, isModifiable, onFileConversion }) => {
     <>
       <div className={`${styles.avatar} ${styles[`avatar--${size}`]}`}>
         {isModifiable && (
+          // TODO: fix the style here
+
           <input
             type="file"
             id="avatar"
@@ -36,7 +38,6 @@ const Avatar = ({ src, alt, size, isModifiable, onFileConversion }) => {
             onChange={handleFileUpload}
           />
         )}
-
         {previewFile ? (
           <img src={previewFile} className={styles.avatar__image} />
         ) : src ? (

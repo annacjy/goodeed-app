@@ -13,7 +13,7 @@ const Input = ({ name, value, type, placeholder, onInputChange, onEnter, showLab
         className={`${styles[`input--${!showLabel && 'noLabel'}`]}`}
         onChange={e => onInputChange(e.target.value)}
         onKeyDown={e => {
-          if (e.keyCode == 13) {
+          if (e.keyCode == 13 && onEnter) {
             onEnter(e.target.value);
           }
         }}

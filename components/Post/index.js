@@ -7,15 +7,17 @@ import Button from 'components/Button';
 import Avatar from 'components/Avatar';
 import Flag from 'components/Flag';
 import Comment from 'components/Comment';
+import Modal from 'components/Modal';
 import UserContext from 'components/UserContext';
 import { dateTimeFormatter } from 'utils/functions';
 
 const Post = ({ post, isModifiable }) => {
   const [isCommentFormVisible, setIsCommentFormVisible] = useState(false);
-  const [isOptionsVisible, setIsOptionsVisible] = useState(false);
+  const [isBorrowConfirmationModalVisible, setIsBorrowConfirmationModalVisible] = useState(false);
+  const [isDeleteConfirmationModalVisible, setIsDeleteConfirmationModalVisible] = useState(false);
   const [comments, setComments] = useState([]);
 
-  const { user } = useContext(UserContext);
+  const [user] = useContext(UserContext);
 
   const router = useRouter();
 
@@ -74,15 +76,15 @@ const Post = ({ post, isModifiable }) => {
   });
 
   const [updatePostStatus] = useMutation(UPDATE_POST_STATUS, {
-    onCompleted: data => router.reload(),
+    onCompleted: () => router.reload(),
   });
 
   const [removePost] = useMutation(REMOVE_POST, {
-    onCompleted: data => router.reload(),
+    onCompleted: () => router.reload(),
   });
 
   const openComments = id => {
-    getComments({ variables: { id } });
+    if (post.comments.length) getComments({ variables: { id } });
     setIsCommentFormVisible(!isCommentFormVisible);
   };
 
@@ -90,6 +92,7 @@ const Post = ({ post, isModifiable }) => {
     <div className={styles.post}>
       <div className={styles.post__content}>
         <div className={styles.post__header}>
+          {/* TODO: avatar 1col, name and text another col. same goes for comment */}
           <div className={styles.post__avatar}>
             <Avatar src={post.content.user.userImage} alt={post.content.user.username} size="small" />
 
@@ -97,30 +100,70 @@ const Post = ({ post, isModifiable }) => {
               <p>{post.content.user.displayName}</p>
               <span>@{post.content.user.username}</span>
             </div>
+            <div className={styles.post__flags}>{post.status === 'BORROWED' && <Flag name="borrowed" />}</div>
           </div>
+          <div className={styles.post__actionButtons}>
+            {isModifiable && post.status !== 'BORROWED' && (
+              <>
+                <Button
+                  name="Set to 'Borrowed'"
+                  theme="green"
+                  onButtonClick={() => setIsBorrowConfirmationModalVisible(true)}
+                />
 
-          <div className={styles.post__flags}>
-            {post.isUrgent && <Flag name="urgent" />}
-            {post.status === 'BORROWED' && <Flag name="borrowed" />}
+                {isBorrowConfirmationModalVisible && (
+                  <Modal
+                    header="Update Post"
+                    isModalVisible={isBorrowConfirmationModalVisible}
+                    onModalClose={() => setIsBorrowConfirmationModalVisible(false)}
+                  >
+                    <div className={styles.post__confirmationModal}>
+                      <h2>Have you borrowed this item?</h2>
+                      <Button
+                        name="Yes, update this post to 'Borrowed'"
+                        theme="green"
+                        onButtonClick={() => updatePostStatus({ variables: { id: post._id } })}
+                      />
+                    </div>
+                  </Modal>
+                )}
+              </>
+            )}
+            {isModifiable && (
+              <>
+                <Button
+                  name="Delete post"
+                  theme="red"
+                  onButtonClick={() => setIsDeleteConfirmationModalVisible(true)}
+                />
+
+                {isDeleteConfirmationModalVisible && (
+                  <Modal
+                    header="Delete Post"
+                    isModalVisible={isDeleteConfirmationModalVisible}
+                    onModalClose={() => setIsDeleteConfirmationModalVisible(false)}
+                  >
+                    <div className={styles.post__confirmationModal}>
+                      <h2>Are you sure you want to delete this post?</h2>
+                      <Button
+                        name="Yes, I want to remove this post"
+                        theme="red"
+                        onButtonClick={() => removePost({ variables: { id: post._id } })}
+                      />
+                    </div>
+                  </Modal>
+                )}
+              </>
+            )}
+            {(user && user.username) !== post.content.user.username && (
+              <Button
+                name="Message"
+                onButtonClick={() => router.push({ pathname: '/chat', query: { with: post.content.user.username } })}
+              />
+            )}
           </div>
         </div>
-        // TODO: borrowed and delete post require another modal to confirm action before proceed
-        {isModifiable && post.status !== 'BORROWED' && (
-          <Button
-            name="Borrowed"
-            theme="green"
-            onButtonClick={() => updatePostStatus({ variables: { id: post._id } })}
-          />
-        )}
-        {isModifiable && (
-          <Button name="Delete post" theme="red" onButtonClick={() => removePost({ variables: { id: post._id } })} />
-        )}
-        {(user && user.username) !== post.content.user.username && (
-          <Button
-            name="Message"
-            onButtonClick={() => router.push({ pathname: '/chat', query: { with: post.content.user.username } })}
-          />
-        )}
+
         <p className={styles.post__text}>{post.content.text}</p>
         {post.content.image && <img src={post.content.image} alt="post image" className={styles.post__image} />}
         <div className={styles.post__actions}>

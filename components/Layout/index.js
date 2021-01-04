@@ -11,7 +11,7 @@ export default Page => {
         ></script>
       </Head>
       <SidebarNav />
-      <main className={styles.layout__main}>
+      <main>
         <Page />
       </main>
     </div>
