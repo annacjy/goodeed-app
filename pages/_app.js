@@ -30,7 +30,7 @@ const client = new ApolloClient({
 });
 
 function MyApp({ Component, pageProps }) {
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(null);
 
   const GET_USER_QUERY = gql`
     query user($token: String!) {

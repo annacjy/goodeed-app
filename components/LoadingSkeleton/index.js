@@ -11,6 +11,12 @@ const LoadingSkeleton = ({ type, noPad }) => {
         </div>
       )}
 
+      {type === 'addPost' && (
+        <div className={styles.loading__addPost}>
+          <div className={styles.loading__block}></div>
+        </div>
+      )}
+
       {type === 'profile' && (
         <div className={styles.loading__profile}>
           {[...Array(3).keys()].map(n => (

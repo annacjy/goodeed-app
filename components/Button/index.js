@@ -1,6 +1,8 @@
 import styles from './styles.module.scss';
 
-const Button = ({ name, theme, disabled, onButtonClick }) => {
+import Spinner from 'components/Spinner';
+
+const Button = ({ name, theme, disabled, loading, onButtonClick }) => {
   return (
     <button
       type="button"
@@ -8,6 +10,7 @@ const Button = ({ name, theme, disabled, onButtonClick }) => {
       className={`${styles.button} ${styles[`button--${theme}`]}`}
       onClick={onButtonClick}
     >
+      {loading && <Spinner color="white" />}
       {name}
     </button>
   );

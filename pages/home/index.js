@@ -1,12 +1,16 @@
 import { useState, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
+
 import Input from 'components/Input';
 import Button from 'components/Button';
 import Post from 'components/Post';
 import Avatar from 'components/Avatar';
 import TextArea from 'components/TextArea';
+import Modal from 'components/Modal';
+import LocationInput from 'components/LocationInput';
 import LoadingSkeleton from 'components/LoadingSkeleton';
-import Error from 'components/Error';
+import Spinner from 'components/Spinner';
+import ErrorPage from 'components/ErrorPage';
 import UserContext from 'components/UserContext';
 import withLayout from 'components/Layout';
 import { useQuery, useMutation } from '@apollo/react-hooks';
@@ -18,19 +22,21 @@ import { dateTimeFormatter } from 'utils/functions';
 const Home = () => {
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState('');
-  const [pageInfo, setPageInfo] = useState(null);
   const [previewFile, setPreviewFile] = useState('');
   const [imageToBeUploaded, setImageToBeUploaded] = useState(null);
+  const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
+  const [locationUpdate, setLocationUpdate] = useState({});
+  const [offset, setOffset] = useState(0);
+  const [isFetchMoreLoading, setIsFetchMoreLoading] = useState(false);
+  const [hasMorePosts, setHasMorePosts] = useState(false);
 
   const [user] = useContext(UserContext);
+  const router = useRouter();
 
   const GET_POSTS = gql`
-    query GetPosts($cursor: String) {
-      posts(cursor: $cursor) {
-        pageInfo {
-          nextCursor
-        }
-        data {
+    query GetPosts($offset: Int) {
+      posts(offset: $offset) {
+        content {
           _id
           content {
             text
@@ -51,6 +57,7 @@ const Home = () => {
             createdAt
           }
         }
+        hasMore
       }
     }
   `;
@@ -81,35 +88,52 @@ const Home = () => {
     }
   `;
 
+  const UPDATE_USER = gql`
+    mutation UpdateUser($fieldsToUpdate: UserInput!) {
+      updateUser(fieldsToUpdate: $fieldsToUpdate) {
+        ok
+        message
+      }
+    }
+  `;
+
   const { loading, error, fetchMore } = useQuery(GET_POSTS, {
-    fetchPolicy: 'network-only',
     onCompleted: data => {
-      setPosts(data.posts.data);
-      setPageInfo(data.posts.pageInfo);
+      const { content, hasMore } = data.posts;
+      setPosts(content);
+      setHasMorePosts(hasMore);
     },
   });
 
   const onScroll = e => {
     // if div is at the bottom, fetch more posts
-    if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
+    if (e.target.scrollTop + e.target.clientHeight === e.target.scrollHeight) {
       // if there are no more posts to fetch, dont do anything
-      if (!pageInfo.nextCursor) return;
-      fetchMorePosts();
+      if (!hasMorePosts) return;
+
+      setTimeout(() => {
+        setIsFetchMoreLoading(true);
+        fetchMorePosts();
+      }, 300);
 
       return;
     }
   };
 
   const fetchMorePosts = async () => {
+    setOffset(prev => prev + 1);
+
     const fetchedMore = await fetchMore({
-      variables: { cursor: pageInfo.nextCursor },
+      variables: { offset: offset + 1 },
     });
 
-    setPageInfo(fetchedMore.data.posts.pageInfo);
-    setPosts(previousPosts => [...previousPosts, ...fetchedMore.data.posts.data]);
+    const { content, hasMore } = fetchedMore.data.posts;
+    setPosts(previousPosts => [...previousPosts, ...content]);
+    setHasMorePosts(hasMore);
+    setIsFetchMoreLoading(false);
   };
 
-  const [createPost] = useMutation(CREATE_POST, {
+  const [createPost, { loading: createPostLoading, error: createPostError }] = useMutation(CREATE_POST, {
     onCompleted: data =>
       setPosts(previousPosts => {
         const prev = [...previousPosts];
@@ -133,6 +157,15 @@ const Home = () => {
     setImageToBeUploaded('');
   };
 
+  const [updateUser, { loading: updateUserLoading }] = useMutation(UPDATE_USER, {
+    onCompleted: data => {
+      if (data.updateUser.ok) {
+        setIsLocationModalVisible(false);
+        router.reload();
+      }
+    },
+  });
+
   const handleFileUpload = e => {
     const fileObject = e.target.files[0];
 
@@ -152,19 +185,34 @@ const Home = () => {
     };
   };
 
-  if (error) return <Error errorMessage={error.message} />;
+  if (error) return <ErrorPage errorMessage={error.message} />;
   if (loading) return <LoadingSkeleton type="posts" />;
 
   return (
     <section onScroll={onScroll} className={styles.home}>
-      {user && (
+      {user ? (
         <>
           {!user.location && (
-            <div>
-              You haven't added your current location. The posts you see now might not be close to you at all
-              {/* TODO: put an edit modal here to update location if theres time */}
-              <p onClick={() => router.push('/dashboard')}>Update your location</p>
-            </div>
+            <>
+              <div className={styles.home__noLocationBanner}>
+                You haven't added your current location. <br />
+                Please add your location so you can post and see posts close to you.
+                <Button name="Set your location" onButtonClick={() => setIsLocationModalVisible(true)} />
+              </div>
+
+              {isLocationModalVisible && (
+                <Modal
+                  header="Add location"
+                  isModalVisible={isLocationModalVisible}
+                  hasSaveButton={true}
+                  loading={updateUserLoading}
+                  onModalClose={() => setIsLocationModalVisible(false)}
+                  onSave={() => updateUser({ variables: { fieldsToUpdate: { location: locationUpdate } } })}
+                >
+                  <LocationInput onPlaceSelected={location => setLocationUpdate(location)} />
+                </Modal>
+              )}
+            </>
           )}
           <div className={styles.home__addPost}>
             <div className={styles.home__addPost_post}>
@@ -186,16 +234,20 @@ const Home = () => {
                   <img src="/camera.svg" alt="media upload" />
                 </label>
               </div>
-              <Button name="Post" onButtonClick={addNewPost} />
+              {createPostError && <p></p>}
+              <Button name="Post" loading={createPostLoading} disabled={!user.location} onButtonClick={addNewPost} />
             </div>
           </div>
         </>
+      ) : (
+        <LoadingSkeleton type="addPost" />
       )}
 
       <div>
         {posts.map(post => (
           <Post key={post._id} post={post} />
         ))}
+        {isFetchMoreLoading && <Spinner color="primary" />}
       </div>
     </section>
   );

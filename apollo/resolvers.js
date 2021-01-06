@@ -7,6 +7,8 @@ let cloudinary = require('cloudinary').v2;
 
 const { BCRYPT_SALT_ROUNDS, JWT_SECRET_KEY } = process.env;
 
+const FETCH_LIMIT = 5;
+
 const resolvers = {
   Query: {
     user: async (_parent, { token }, { db }, _info) => {
@@ -18,54 +20,43 @@ const resolvers = {
 
       return await db.collection('users').findOne({ username: user });
     },
-    posts: async (_parent, { cursor }, { db, loggedUser }, _info) => {
+    posts: async (_parent, { offset }, { db, loggedUser }, _info) => {
       if (!loggedUser) throw new AuthenticationError('you must be logged in');
 
       const { location } = await db.collection('users').findOne({ username: loggedUser.username });
 
       let posts;
 
-      if (cursor) {
-        const postCursor = await db
-          .collection('posts')
-          .find({ _id: { $lt: new ObjectId(cursor) } })
-          .sort({ _id: -1 })
-          .limit(5);
+      const allPosts = await db
+        .collection('posts')
+        .find()
+        .toArray();
 
-        const hasNext = await postCursor.hasNext();
+      const sortedByDate = allPosts.reverse();
 
-        posts = hasNext ? await postCursor.toArray() : [];
+      // mongodb mapReduce not supported for free tier cluster :(
+      // Workaround -> handle sort using JS methods
+
+      if (location) {
+        const compareDistance = (postLat, postLng) => calcDistance(postLat, postLng, location.lat, location.lng);
+        // sort by distance (closest -> farthest)
+        posts = sortedByDate.sort(
+          (a, b) => compareDistance(a.location.lat, a.location.lng) - compareDistance(b.location.lat, b.location.lng)
+        );
       } else {
-        posts = await db
-          .collection('posts')
-          .find()
-          .sort({ _id: -1 })
-          .limit(5)
-          .toArray();
+        posts = sortedByDate;
       }
 
-      if (posts.length) {
-        const nextCursor = posts[posts.length - 1]._id;
+      // sort by offset
 
-        const pageInfo = {
-          nextCursor,
-        };
-
-        if (location) {
-          const compareDistance = (postLat, postLng) => calcDistance(postLat, postLng, location.lat, location.lng);
-          // sort by distance (closest -> farthest)
-          return {
-            pageInfo,
-            data: posts.sort(
-              (a, b) =>
-                compareDistance(a.location.lat, a.location.lng) - compareDistance(b.location.lat, b.location.lng)
-            ),
-          };
-        } else {
-          return { pageInfo, data: posts };
-        }
+      if (offset) {
+        // if offset is not null (not the initial fetch)
+        const newOffsetValue = offset * FETCH_LIMIT;
+        const payload = posts.slice(newOffsetValue, FETCH_LIMIT + newOffsetValue);
+        return { content: payload, hasMore: !!payload.length };
       } else {
-        return { pageInfo: { nextCursor: null }, data: posts };
+        const payload = posts.slice(0, FETCH_LIMIT);
+        return { content: payload, hasMore: !!payload.length };
       }
     },
     userPost: async (_parent, _args, { db, loggedUser }, _info) => {
@@ -98,14 +89,28 @@ const resolvers = {
 
       const username = loggedUser.username;
 
+      const all = await db
+        .collection('users')
+        .find()
+        .toArray();
+
+      const getOtherUserInfo = name => {
+        return all.find(({ username }) => username === name);
+      };
+
       const mappedChats = allChats.map(obj => {
         let rObj = {};
+
+        const userChatInfo = obj.participants.find(participant => participant !== username);
         rObj['username'] = username;
+        rObj['userChatInfo'] = getOtherUserInfo(userChatInfo);
+        rObj['lastMessage'] = obj.messages[obj.messages.length - 1];
+
         return { ...obj, ...rObj };
       });
 
       const filteredChats = mappedChats
-        .filter(({ participants }) => participants.filter(({ username }) => username.includes(loggedUser.username)))
+        .filter(({ participants }) => participants.includes(username))
         .sort((a, b) => new Date(b.lastUpdatedAt) - new Date(a.lastUpdatedAt));
 
       return filteredChats;
@@ -314,23 +319,18 @@ const resolvers = {
       const Chats = db.collection('chats');
 
       const allChats = await Chats.find().toArray();
-      // participants.includes(loggedUser.username) && participants.includes(to.username)
-      const matchedMessages = allChats.find(({ participants }) =>
-        participants.map(({ username }) => username === loggedUser.username && username === to.username)
+
+      const matchedMessages = allChats.find(
+        ({ participants }) => participants.includes(loggedUser.username) && participants.includes(to)
       );
 
       const newMessage = {
         from: loggedUser.username,
-        to: to.username,
+        to,
         message,
         createdAt,
       };
 
-      const chatUserInfo = {
-        username: loggedUser.username,
-        displayName: loggedUser.displayName,
-        userImage: loggedUser.userImage,
-      };
       // if chats already exist, update Chat object to the Chats
       if (matchedMessages) {
         await Chats.findOneAndUpdate(
@@ -340,7 +340,7 @@ const resolvers = {
       } else {
         // else, insert new Chat object with the participants
         await Chats.insertOne({
-          participants: [chatUserInfo, to],
+          participants: [loggedUser.username, to],
           messages: [newMessage],
           lastUpdatedAt: `${new Date()}`,
         });

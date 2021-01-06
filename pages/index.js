@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import Input from 'components/Input';
 import Button from 'components/Button';
 import Logo from 'components/Logo';
+import ErrorMessage from 'components/ErrorMessage';
 
 const Login = () => {
   const router = useRouter();
@@ -53,7 +54,7 @@ const Login = () => {
     }
   `;
 
-  const [login] = useMutation(LOGIN_USER, {
+  const [login, { loading: isLoginLoading }] = useMutation(LOGIN_USER, {
     onCompleted: data => {
       const { status, token, user } = data.login;
 
@@ -68,7 +69,7 @@ const Login = () => {
     },
   });
 
-  const [register] = useMutation(REGISTER_USER, {
+  const [register, { loading: isRegisterLoading }] = useMutation(REGISTER_USER, {
     onCompleted: data => {
       const { status } = data.register;
 
@@ -95,7 +96,7 @@ const Login = () => {
         <img src="/login-background.svg" alt="background" className={styles.login__background} />
         <div>
           <img src="/give.svg" alt="give" width="40" />
-          Borrow what you need from your neighbours.
+          Borrow what you need from your neighbours. <br /> Be it tools, games or books.
         </div>
         <div>
           <img src="/community.svg" alt="community" width="40" />
@@ -115,22 +116,19 @@ const Login = () => {
           <Input name="Username" type="text" showLabel value={username} onInputChange={val => setUsername(val)} />
           <Input name="Password" type="password" showLabel value={password} onInputChange={val => setPassword(val)} />
         </div>
-        {validationMessage && (
-          <div className={styles.login__validation}>
-            <img src="/exclamation.svg" alt="Error" width="20" />
-            {validationMessage}
-          </div>
-        )}
+        {validationMessage && <ErrorMessage message={validationMessage} />}
 
         {isRegister ? (
           <Button
             name="Register"
+            loading={isRegisterLoading}
             disabled={!username || !password}
             onButtonClick={() => register({ variables: { username, password } })}
           />
         ) : (
           <Button
             name="Login"
+            loading={isLoginLoading}
             disabled={!username || !password}
             onButtonClick={() => login({ variables: { username, password } })}
           />

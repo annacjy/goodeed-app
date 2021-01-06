@@ -1,6 +1,6 @@
 import styles from './styles.module.scss';
 
-const Error = ({ errorMessage }) => {
+const ErrorPage = ({ errorMessage }) => {
   return (
     <div className={styles.errorPage}>
       <img src="/error.svg" alt="error" />
@@ -10,4 +10,4 @@ const Error = ({ errorMessage }) => {
   );
 };
 
-export default Error;
+export default ErrorPage;

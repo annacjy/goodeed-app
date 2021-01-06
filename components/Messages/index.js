@@ -27,7 +27,7 @@ const Messages = ({ chatParticipants }) => {
   `;
 
   const POST_MESSAGE = gql`
-    mutation PostMessage($to: BasicUserInfoInput!, $message: String!, $createdAt: String!) {
+    mutation PostMessage($to: String!, $message: String!, $createdAt: String!) {
       postMessage(to: $to, message: $message, createdAt: $createdAt) {
         message
       }
@@ -37,7 +37,8 @@ const Messages = ({ chatParticipants }) => {
   const [getStoredMessages, { loading }] = useLazyQuery(GET_STORED_MESSAGES, {
     onCompleted: d => setMessages(d.storedMessages.messages),
   });
-  const [postMessage, postMessageRes] = useMutation(POST_MESSAGE);
+
+  const [postMessage] = useMutation(POST_MESSAGE);
 
   useEffect(() => {
     const socketIo = io.connect(process.env.APP_URL, { forceNew: true });
@@ -107,7 +108,7 @@ const Messages = ({ chatParticipants }) => {
 
     delete chatUser['__typename'];
 
-    postMessage({ variables: { to: chatUser, message, createdAt: timeStamp } });
+    postMessage({ variables: { to: chatUser.username, message, createdAt: timeStamp } });
 
     // reset input
     setMessage('');
@@ -152,7 +153,6 @@ const Messages = ({ chatParticipants }) => {
         <div className={styles.chats__sendButton}>
           <img src="/send.svg" alt="send message" onClick={sendMessage} />
         </div>
-        {/* <Button name="Send" onButtonClick={sendMessage} /> */}
       </div>
     </div>
   );

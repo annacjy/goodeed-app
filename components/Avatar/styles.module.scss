@@ -25,12 +25,54 @@
     }
   }
 
+  &--medium {
+    width: 70px;
+
+    .avatar__image {
+      width: 70px;
+      height: 70px;
+    }
+  }
+
   &--large {
     width: 120px;
 
     .avatar__image {
       width: 120px;
       height: 120px;
+    }
+  }
+
+  &__upload {
+    width: 30px;
+    height: 30px;
+    position: relative;
+    border-radius: 50%;
+    margin: 2px 13px 0;
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    input,
+    img {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    img {
+      width: inherit;
+      cursor: pointer;
+    }
+
+    input {
+      width: 30px;
+      opacity: 0;
+    }
+
+    [type='file'] {
+      -webkit-appearance: button;
     }
   }
 }

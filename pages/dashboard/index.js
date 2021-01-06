@@ -1,10 +1,10 @@
 import { useQuery, useMutation } from '@apollo/react-hooks';
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-import Autocomplete from 'react-google-autocomplete';
 import gql from 'graphql-tag';
 import withLayout from 'components/Layout';
 import Post from 'components/Post';
+import LocationInput from 'components/LocationInput';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import Avatar from 'components/Avatar';
@@ -62,7 +62,8 @@ const Dashboard = () => {
   `;
 
   const { loading, error, data } = useQuery(GET_USER_POSTS);
-  const [updateUser] = useMutation(UPDATE_USER, {
+
+  const [updateUser, { loading: updateUserLoading }] = useMutation(UPDATE_USER, {
     onCompleted: data => {
       if (data.updateUser.ok) {
         setIsEditingProfile(false);
@@ -85,21 +86,9 @@ const Dashboard = () => {
     }
   }, [activeTab, data]);
 
-  const setLatLng = place => {
-    const {
-      geometry: { location },
-      formatted_address,
-    } = place;
-    const lat = location.lat();
-    const lng = location.lng();
-
-    setFieldsToUpdate(prev => ({ ...prev, location: { lat, lng, address: formatted_address } }));
-  };
-
   const handleUpdateUser = () => {
     if (Object.keys(fieldsToUpdate).length) {
       updateUser({ variables: { fieldsToUpdate } });
-      setUpdateStatus('loading');
     }
   };
 
@@ -110,7 +99,12 @@ const Dashboard = () => {
       {user ? (
         <div className={styles.dashboard__profile}>
           <div className={styles.dashboard__profile_header}>
-            <Avatar src={user.userImage} alt={user.username} size="large" />
+            <div className={styles['dashboard__profile_header--desktop']}>
+              <Avatar src={user.userImage} alt={user.username} size="large" />
+            </div>
+            <div className={styles['dashboard__profile_header--mobile']}>
+              <Avatar src={user.userImage} alt={user.username} size="medium" />
+            </div>
             <div className={styles.dashboard__profile_userInfo}>
               <div>
                 <h2>{user.displayName}</h2>
@@ -140,6 +134,7 @@ const Dashboard = () => {
           header="Edit profile"
           isModalVisible={isEditingProfile}
           hasSaveButton={true}
+          loading={updateUserLoading}
           onModalClose={() => setIsEditingProfile(false)}
           onSave={handleUpdateUser}
         >
@@ -157,15 +152,10 @@ const Dashboard = () => {
               />
             </div>
 
-            <div className={styles.dashboard__edit_locationInput}>
-              <label>Location</label>
-              <Autocomplete
-                style={{ width: '90%' }}
-                types={['address']}
-                defaultValue={(user.location && user.location.address) || ''}
-                onPlaceSelected={place => setLatLng(place)}
-              />
-            </div>
+            <LocationInput
+              defaultValue={(user.location && user.location.address) || ''}
+              onPlaceSelected={location => setFieldsToUpdate(prev => ({ ...prev, location }))}
+            />
 
             <Input
               name="Display name"

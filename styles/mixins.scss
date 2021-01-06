@@ -1,16 +1,35 @@
 @mixin fontBold($size) {
   font-size: #{$size}px;
-  font-family: CommissionerBold, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 600;
 }
 @mixin fontRegular($size) {
   font-size: #{$size}px;
-  font-family: CommissionerRegular, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 500;
 }
 @mixin fontLight($size) {
   font-size: #{$size}px;
-  font-family: CommissionerLight, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 400;
 }
 @mixin fontThin($size) {
   font-size: #{$size}px;
-  font-family: CommissionerThin, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 300;
+}
+
+@mixin wrapper() {
+  max-width: 1440px;
+  margin: auto;
+}
+
+// between 768px - 1024px
+@mixin tablet {
+  @media (min-width: 768px) and (max-width: 1024px) {
+    @content;
+  }
+}
+
+// less than 768px
+@mixin mobile {
+  @media (min-width: 0) and (max-width: 767px) {
+    @content;
+  }
 }

@@ -1,6 +1,8 @@
 @import 'styles/variables.scss';
+@import 'styles/mixins.scss';
 
 .login {
+  @include wrapper();
   width: 100%;
   height: 100vh;
   display: flex;
@@ -17,8 +19,8 @@
     & > div {
       display: flex;
       align-items: center;
-      margin: 20px 0;
-      font-size: 18px;
+      margin: 30px 0;
+      @include fontRegular(18);
 
       img {
         margin-right: 15px;
@@ -50,17 +52,6 @@
     }
   }
 
-  &__validation {
-    display: flex;
-    align-items: center;
-    color: #f86d6d;
-    margin-bottom: 15px;
-
-    img {
-      margin-right: 10px;
-    }
-  }
-
   &__prompt {
     cursor: pointer;
     font-style: italic;
@@ -69,6 +60,47 @@
     &:hover {
       color: $color-primary;
       text-decoration: underline;
+    }
+  }
+}
+
+@include tablet {
+  .login {
+    padding: 30px 40px;
+
+    &__background {
+      width: 70%;
+    }
+
+    &__info {
+      @include fontRegular(16);
+      width: 60%;
+    }
+
+    &__form {
+      @include fontRegular(15);
+      margin-left: 50px;
+    }
+  }
+}
+
+@include mobile {
+  .login {
+    @include fontRegular(14);
+    flex-direction: column-reverse;
+    padding: 30px 15px;
+    height: 100%;
+
+    &__background {
+      display: none;
+    }
+
+    &__info {
+      display: none;
+    }
+
+    &__form {
+      width: 90%;
     }
   }
 }

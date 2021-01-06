@@ -1,4 +1,5 @@
 @import 'styles/variables.scss';
+@import 'styles/mixins.scss';
 
 .button {
   border-radius: 5px;
@@ -8,18 +9,32 @@
   color: $color-white;
   border-style: none;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     opacity: 0.9;
   }
 
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   &--green {
-    background: #89ffba;
+    background: $color-success;
     color: black;
   }
 
   &--red {
-    background: #f86d6d;
+    background: $color-error;
+    color: white;
+  }
+
+  &--transparent {
+    background: transparent;
+    border: 1px solid white;
     color: white;
   }
 }

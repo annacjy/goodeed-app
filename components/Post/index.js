@@ -68,18 +68,22 @@ const Post = ({ post, isModifiable }) => {
   `;
 
   const [getComments, { loading }] = useLazyQuery(GET_COMMENTS, {
+    fetchPolicy: 'network-only',
     onCompleted: data => setComments(prev => [...prev, ...data.comments]),
   });
 
-  const [postComment] = useMutation(POST_COMMENT, {
+  const [postComment, { loading: postCommentLoading, error: postCommentError }] = useMutation(POST_COMMENT, {
     onCompleted: data => setComments(prev => [...prev, data.postComment]),
   });
 
-  const [updatePostStatus] = useMutation(UPDATE_POST_STATUS, {
-    onCompleted: () => router.reload(),
-  });
+  const [updatePostStatus, { loading: updatePostStatusLoading, error: updatePostStatusError }] = useMutation(
+    UPDATE_POST_STATUS,
+    {
+      onCompleted: () => router.reload(),
+    }
+  );
 
-  const [removePost] = useMutation(REMOVE_POST, {
+  const [removePost, { loading: removePostLoading, error: removePostError }] = useMutation(REMOVE_POST, {
     onCompleted: () => router.reload(),
   });
 
@@ -119,9 +123,11 @@ const Post = ({ post, isModifiable }) => {
                   >
                     <div className={styles.post__confirmationModal}>
                       <h2>Have you borrowed this item?</h2>
+                      {updatePostStatusError && <ErrorMessage message={updatePostStatusError} />}
                       <Button
                         name="Yes, update this post to 'Borrowed'"
                         theme="green"
+                        loading={updatePostStatusLoading}
                         onButtonClick={() => updatePostStatus({ variables: { id: post._id } })}
                       />
                     </div>
@@ -145,9 +151,11 @@ const Post = ({ post, isModifiable }) => {
                   >
                     <div className={styles.post__confirmationModal}>
                       <h2>Are you sure you want to delete this post?</h2>
+                      {removePostError && <ErrorMessage message={removePostError} />}
                       <Button
                         name="Yes, I want to remove this post"
                         theme="red"
+                        loading={removePostLoading}
                         onButtonClick={() => removePost({ variables: { id: post._id } })}
                       />
                     </div>
@@ -178,6 +186,8 @@ const Post = ({ post, isModifiable }) => {
         <Comment
           comments={comments}
           loading={loading}
+          postCommentLoading={postCommentLoading}
+          error={postCommentError}
           handlePostComment={comment =>
             postComment({ variables: { text: comment, createdAt: dateTimeFormatter(new Date()), id: post._id } })
           }

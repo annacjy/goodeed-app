@@ -14,7 +14,7 @@ const TextArea = ({ value, placeholder, hasBorder, onContentChange, onEnter }) =
   }, [textArea, text]);
 
   const handleOnKeyPress = e => {
-    if (e.charCode === 13) onEnter();
+    if (e.charCode === 13 && onEnter) onEnter();
   };
 
   return (

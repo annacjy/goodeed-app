@@ -63,13 +63,9 @@ const TypeDefs = gql`
     location: Location
   }
 
-  type PageInfo {
-    nextCursor: String
-  }
-
-  type PostsWithPageInfo {
-    pageInfo: PageInfo
-    data: [Posts!]
+  type PostsWithHasMoreInfo {
+    hasMore: Boolean
+    content: [Posts!]
   }
 
   # <---- CHAT ----->
@@ -86,16 +82,12 @@ const TypeDefs = gql`
     userImage: String
   }
 
-  input BasicUserInfoInput {
-    username: String!
-    displayName: String
-    userImage: String
-  }
-
   type MessageData {
     _id: String!
-    participants: [BasicUserInfo]
+    participants: [String]
     username: String!
+    userChatInfo: BasicUserInfo
+    lastMessage: Chat
     messages: [Chat]
     lastUpdatedAt: String
   }
@@ -107,7 +99,7 @@ const TypeDefs = gql`
     userPost: [Posts]!
 
     # <---- Posts ----->
-    posts(cursor: String): PostsWithPageInfo!
+    posts(offset: Int): PostsWithHasMoreInfo!
     userBorrowedPosts: [Posts]!
     comments(id: String!): [Post]!
 
@@ -133,7 +125,7 @@ const TypeDefs = gql`
     removePost(id: String!): StatusPayload
 
     # <---- Chat ----->
-    postMessage(to: BasicUserInfoInput!, message: String!, createdAt: String!): Chat
+    postMessage(to: String!, message: String!, createdAt: String!): Chat
   }
 `;
 

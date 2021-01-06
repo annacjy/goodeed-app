@@ -1,5 +1,8 @@
+@import 'styles/mixins.scss';
+
 .dashboard {
   padding: 30px 50px;
+  height: 100vh;
 
   &__profile {
     display: flex;
@@ -8,6 +11,10 @@
 
     &_header {
       display: flex;
+
+      &--mobile {
+        display: none;
+      }
     }
 
     &_userInfo {
@@ -39,28 +46,6 @@
       flex-direction: column;
       align-items: center;
     }
-
-    &_locationInput {
-      border: 1px solid rgba(0, 0, 0, 0.3);
-      border-radius: 5px;
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
-      margin: 20px 0;
-
-      label {
-        font-size: 16px;
-        color: #757575;
-        margin-bottom: 5px;
-      }
-
-      input {
-        width: 100%;
-        border: none;
-        font-size: 18px;
-        color: #2f2f2f;
-      }
-    }
   }
 
   &__categories {
@@ -74,5 +59,61 @@
     max-height: 68vh;
     padding-right: 20px;
     overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+@include tablet {
+  .dashboard {
+    padding: 30px;
+
+    &__posts {
+      max-height: 70%;
+    }
+  }
+}
+
+@include mobile {
+  .dashboard {
+    padding: 15px 0;
+
+    &__profile {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+        margin-top: 20px;
+      }
+
+      &_header {
+        &--mobile {
+          display: block;
+        }
+
+        &--desktop {
+          display: none;
+        }
+      }
+
+      &_userInfo {
+        padding: 0;
+
+        h2 {
+          @include fontBold(20);
+        }
+
+        p {
+          @include fontLight(16);
+        }
+      }
+
+      &_postStats {
+        margin-top: 10px;
+      }
+    }
+
+    &__posts {
+      max-height: 50%;
+    }
   }
 }

@@ -27,16 +27,17 @@ const Avatar = ({ src, alt, size, isModifiable, onFileConversion }) => {
     <>
       <div className={`${styles.avatar} ${styles[`avatar--${size}`]}`}>
         {isModifiable && (
-          // TODO: fix the style here
-
-          <input
-            type="file"
-            id="avatar"
-            name="avatar"
-            accept="image/*"
-            className={styles.avatar__upload}
-            onChange={handleFileUpload}
-          />
+          <label htmlFor="avatar" className={styles.avatar__upload}>
+            <input
+              type="file"
+              id="avatar"
+              name="avatar"
+              accept="image/*"
+              className={styles.avatar__upload}
+              onChange={handleFileUpload}
+            />
+            <img src="/add.svg" alt="upload" />
+          </label>
         )}
         {previewFile ? (
           <img src={previewFile} className={styles.avatar__image} />

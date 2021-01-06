@@ -45,6 +45,13 @@
     }
   }
 
+  &__addPost {
+    div {
+      width: 100%;
+      height: 155px;
+    }
+  }
+
   &__profile {
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;

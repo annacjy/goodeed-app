@@ -1,5 +1,25 @@
+@import 'styles/mixins.scss';
+
 .layout {
   display: grid;
-  grid-template-columns: 0.7fr 3fr;
-  padding: 0 250px;
+  grid-template-columns: 1fr 3fr;
+  padding: 0 120px;
+
+  @include wrapper();
+}
+
+@include tablet {
+  .layout {
+    grid-template-columns: 0.3fr 3fr;
+    padding: 0 30px;
+  }
+}
+
+@include mobile {
+  .layout {
+    display: block;
+    max-height: 100vh;
+    overflow: hidden;
+    padding: 0 15px;
+  }
 }

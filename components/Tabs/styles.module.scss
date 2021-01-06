@@ -1,4 +1,5 @@
 @import 'styles/variables.scss';
+@import 'styles/mixins.scss';
 
 .tabs {
   display: flex;
@@ -18,6 +19,16 @@
     &--active {
       font-weight: bold;
       border-bottom: 5px solid $color-primary;
+    }
+  }
+}
+
+@include mobile {
+  .tabs {
+    margin: 15px 0;
+
+    &__tab {
+      padding: 10px 15px;
     }
   }
 }

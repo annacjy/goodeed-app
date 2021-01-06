@@ -1,0 +1,12 @@
+@import 'styles/variables.scss';
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  color: $color-error;
+  margin-bottom: 15px;
+
+  img {
+    margin-right: 10px;
+  }
+}
