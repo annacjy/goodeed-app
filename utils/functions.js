@@ -26,16 +26,3 @@ export const dateTimeFormatter = value => {
 
   return `${date} - ${timeAmPm}`;
 };
-
-export const convertBlobToBase64 = fileObject => {
-  const blob = new Blob([fileObject], { type: fileObject.type });
-  let reader = new FileReader();
-
-  let base64String;
-  reader.readAsDataURL(blob);
-  reader.onloadend = function() {
-    return reader.result;
-  };
-
-  return base64String;
-};

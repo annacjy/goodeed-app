@@ -22,13 +22,12 @@
 
       p {
         color: #252525;
-        font-size: 20px;
-        font-weight: bold;
+        @include fontRegular(20);
       }
 
       span {
         color: #626262;
-        font-size: 15px;
+        @include fontLight(15);
       }
     }
   }
@@ -60,7 +59,9 @@
   }
 
   &__text {
+    @include fontLight(17);
     padding: 20px 0;
+    line-height: 1.4;
     white-space: pre-wrap;
   }
 
@@ -78,7 +79,7 @@
 
     &_date {
       color: grey;
-      font-size: 12px;
+      @include fontLight(12);
     }
 
     &_comment {
@@ -88,7 +89,8 @@
       cursor: pointer;
 
       span {
-        font-size: 14px;
+        @include fontLight(14);
+
         margin-left: 5px;
       }
     }

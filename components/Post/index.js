@@ -96,7 +96,6 @@ const Post = ({ post, isModifiable }) => {
     <div className={styles.post}>
       <div className={styles.post__content}>
         <div className={styles.post__header}>
-          {/* TODO: avatar 1col, name and text another col. same goes for comment */}
           <div className={styles.post__avatar}>
             <Avatar src={post.content.user.userImage} alt={post.content.user.username} size="small" />
 

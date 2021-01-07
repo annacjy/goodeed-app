@@ -7,7 +7,7 @@
   margin: 20px 0;
 
   label {
-    font-size: 16px;
+    @include fontRegular(16);
     color: #757575;
     margin-bottom: 5px;
   }
@@ -15,7 +15,7 @@
   input {
     width: 100%;
     border: none;
-    font-size: 18px;
+    @include fontRegular(18);
     color: #2f2f2f;
   }
 }

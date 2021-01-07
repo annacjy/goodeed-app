@@ -1,3 +1,5 @@
+@import 'styles/mixins.scss';
+
 .comment {
   background: #f9f9f9;
   padding: 15px;
@@ -34,19 +36,18 @@
 
       p {
         color: #252525;
-        font-size: 20px;
-        font-weight: bold;
+        @include fontBold(20);
       }
 
       span {
         color: #626262;
-        font-size: 15px;
+        @include fontRegular(15);
       }
     }
 
     &_createdAt {
       color: grey;
-      font-size: 10px;
+      @include fontLight(10);
     }
   }
 }

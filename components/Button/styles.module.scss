@@ -2,9 +2,9 @@
 @import 'styles/mixins.scss';
 
 .button {
+  @include fontRegular(17);
   border-radius: 5px;
   padding: 10px 20px;
-  font-size: 17px;
   background: $color-primary;
   color: $color-white;
   border-style: none;

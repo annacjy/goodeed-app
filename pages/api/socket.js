@@ -2,13 +2,9 @@ const { Server } = require('socket.io');
 
 const socketHandler = (req, res) => {
   if (!res.socket.server.io) {
-    console.log('*First use, starting socket.io');
-
     const io = new Server(res.socket.server);
 
     io.on('connection', socket => {
-      console.log(socket.id + ' ==== connected');
-
       socket.on('join', roomName => {
         let split = roomName.split('--with--');
         let unique = [...new Set(split)].sort((a, b) => (a < b ? -1 : 1));
@@ -23,7 +19,6 @@ const socketHandler = (req, res) => {
 
         socket.join(updatedRoomName);
 
-        console.log('room', socket.rooms);
         socket.on(`emitMessage`, message => {
           Array.from(socket.rooms)
             .filter(it => it !== socket.id)
@@ -31,23 +26,14 @@ const socketHandler = (req, res) => {
               socket.to(id).emit('onMessage', message);
             });
         });
-
-        // socket.on('isTyping', isTyping => {
-        //   socket.broadcast.emit('typing', isTyping);
-        // });
-        // socket.broadcast.emit('isOnline', true);
       });
 
       socket.on('disconnect', () => {
-        console.log(socket.id + ' ==== diconnected');
         socket.removeAllListeners();
-        // socket.broadcast.emit('isOnline', false);
       });
     });
 
     res.socket.server.io = io;
-  } else {
-    console.log('socket.io already running');
   }
 
   res.end();

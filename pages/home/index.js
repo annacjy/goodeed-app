@@ -98,6 +98,7 @@ const Home = () => {
   `;
 
   const { loading, error, fetchMore } = useQuery(GET_POSTS, {
+    fetchPolicy: 'network-only',
     onCompleted: data => {
       const { content, hasMore } = data.posts;
       setPosts(content);
@@ -218,7 +219,7 @@ const Home = () => {
             <div className={styles.home__addPost_post}>
               <Avatar src={user.userImage} alt={user.username} size="small" />
               <div className={styles.home__addPost_textarea}>
-                <TextArea placeholder="I need to borrow..." onContentChange={val => setNewPost(val)} />
+                <TextArea value={newPost} placeholder="I need to borrow..." onContentChange={val => setNewPost(val)} />
 
                 {previewFile && (
                   <div className={styles.home__addPost_previewFile}>

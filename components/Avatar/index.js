@@ -1,6 +1,5 @@
 import styles from './styles.module.scss';
 import { useState } from 'react';
-import { convertBlobToBase64 } from 'utils/functions';
 
 const Avatar = ({ src, alt, size, isModifiable, onFileConversion }) => {
   const [previewFile, setPreviewFile] = useState('');
@@ -12,8 +11,6 @@ const Avatar = ({ src, alt, size, isModifiable, onFileConversion }) => {
     const blobUrl = URL.createObjectURL(fileObject);
     setPreviewFile(blobUrl);
 
-    // TODO: limit the size?
-    // const base64String = convertBlobToBase64(fileObject);
     const blob = new Blob([fileObject], { type: fileObject.type });
     let reader = new FileReader();
     reader.readAsDataURL(blob);

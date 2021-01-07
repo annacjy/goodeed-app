@@ -8,5 +8,3 @@ spec:
    envs:
    - key: APP_URL
      value: ${goodeed-app.APP_URL}
-  databases:
-  - name: goodeed-db

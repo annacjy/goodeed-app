@@ -1,3 +1,5 @@
+@import 'styles/mixins.scss';
+
 .input {
   padding: 10px;
   width: 100%;
@@ -9,14 +11,14 @@
     flex-direction: column;
 
     label {
-      font-size: 16px;
+      @include fontRegular(16);
       color: #757575;
       margin-bottom: 5px;
     }
 
     input {
       border: none;
-      font-size: 18px;
+      @include fontRegular(18);
       color: #2f2f2f;
     }
   }

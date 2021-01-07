@@ -9,8 +9,7 @@
   line-height: 3;
   height: 100vh;
   border-right: 1px solid #e9e9e9;
-  font-size: 25px;
-  font-size: 400;
+  @include fontRegular(25);
 
   &__logo {
     padding-left: 30px;

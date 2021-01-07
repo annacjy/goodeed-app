@@ -40,21 +40,20 @@
       margin-left: 10px;
 
       h1 {
-        font-size: 18px;
-        font-weight: 700;
+        @include fontBold(20);
       }
 
       p {
         width: 87%;
         color: #3d3d3d;
-        font-size: 15px;
+        @include fontRegular(15);
         margin-top: 5px;
       }
     }
 
     &_time {
       color: #3d3d3d;
-      font-size: 10px;
+      @include fontLight(10);
     }
   }
 
