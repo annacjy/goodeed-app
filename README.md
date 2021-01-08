@@ -14,6 +14,15 @@ This platform is deployed to [DigitalOcean App Platform](https://www.digitalocea
 
 [![Deploy to DO](https://mp-assets1.sfo2.digitaloceanspaces.com/deploy-to-do/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/annacjy/goodeed-app/tree/main)
 
+### ✏️ Description
+
+Features for this app includes:
+- Post on what you would like to borrow and they'd show up for people who are close to you
+- Private message users 
+- Comment on posts
+- Keep tab of what's borrowed
+
+
 ## 📸 Screenshots
 
 ![Screenshot 1](https://dev-to-uploads.s3.amazonaws.com/i/vgcbiewsietd0q4c81hq.png)
