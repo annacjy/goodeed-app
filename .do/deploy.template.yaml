@@ -1,7 +1,8 @@
 spec:
   name: goodeed-app
   services:
-   - environment_slug: node-js
+   - name: goodeed-app
+    environment_slug: node-js
     git:
       branch: main
       repo_clone_url: https://github.com/annacjy/goodeed-app.git
