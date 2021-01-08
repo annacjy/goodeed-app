@@ -8,6 +8,10 @@ https://goodeed-app-ugrpa.ondigitalocean.app/
 
 ## 🚀 Deploy to DigitalOcean App Platform
 
+This platform is deployed to [DigitalOcean App Platform](https://www.digitalocean.com/docs/app-platform/).
+
+> This repository contains `.do/deploy.template.yaml` YAML file with the necessary keys. When you wish to deploy, ensure that you fill in the ENV variables (currently filled with dummy values) to your values.
+
 [![Deploy to DO](https://mp-assets1.sfo2.digitaloceanspaces.com/deploy-to-do/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/annacjy/goodeed-app/tree/main)
 
 ## 📸 Screenshots
