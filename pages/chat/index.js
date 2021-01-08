@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { useQuery, useLazyQuery } from '@apollo/react-hooks';
+import Head from 'next/head';
 import gql from 'graphql-tag';
 import { useRouter } from 'next/router';
 import UserContext from 'components/UserContext';
@@ -113,6 +114,10 @@ function Chat() {
 
   return (
     <>
+      <Head>
+        <title>Login</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
       <section className={styles.chatPage}>
         <div className={styles.chatPage__history}>
           {initialFetch &&

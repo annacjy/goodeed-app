@@ -1,4 +1,5 @@
 import styles from './login.module.scss';
+import Head from 'next/head';
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import { useMutation } from '@apollo/react-hooks';
@@ -92,6 +93,10 @@ const Login = () => {
 
   return (
     <div className={styles.login}>
+      <Head>
+        <title>Login</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
       <div className={styles.login__info}>
         <img src="/login-background.svg" alt="background" className={styles.login__background} />
         <div>

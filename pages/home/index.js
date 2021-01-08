@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 
 import Input from 'components/Input';
 import Button from 'components/Button';
@@ -191,6 +192,10 @@ const Home = () => {
 
   return (
     <section onScroll={onScroll} className={styles.home}>
+      <Head>
+        <title>Home</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
       {user ? (
         <>
           {!user.location && (

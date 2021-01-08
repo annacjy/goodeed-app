@@ -1,4 +1,5 @@
 import { useQuery, useMutation } from '@apollo/react-hooks';
+import Head from 'next/head';
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import gql from 'graphql-tag';
@@ -96,6 +97,10 @@ const Dashboard = () => {
 
   return (
     <div className={styles.dashboard}>
+      <Head>
+        <title>Dashboard</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
       {user ? (
         <div className={styles.dashboard__profile}>
           <div className={styles.dashboard__profile_header}>
