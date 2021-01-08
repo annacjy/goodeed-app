@@ -1,30 +1,31 @@
 spec:
   name: goodeed-app
   services:
-   - name: goodeed-app
-    environment_slug: node-js
-    git:
-      branch: main
-      repo_clone_url: https://github.com/annacjy/goodeed-app.git
-    envs:
-      - key: APP_URL
-        value: ${goodeed-app.APP_URL}
-      - key: MONGO_DB_URI
-        value: 'YOUR_MONGO_DB_URI'
-        type: SECRET
-      - key: BCRYPT_SALT_ROUNDS
-        value: 'YOUR_BCRYPT_SALT_ROUNDS'
-      - key: JWT_SECRET_KEY
-        value: 'YOUR_JWT_SECRET_KEY'
-        type: SECRET
-      - key: GOOGLE_MAPS_API_KEY
-        value: 'YOUR_GOOGLE_MAPS_API_KEY'
-        type: SECRET
-      - key: CLOUDINARY_CLOUD_NAME
-        value: 'YOUR_CLOUDINARY_CLOUD_NAME'
-      - key: CLOUDINARY_API_KEY
-        value: 'YOUR_CLOUDINARY_API_KEY'
-        type: SECRET
-      - key: CLOUDINARY_API_SECRET
-        value: 'YOUR_CLOUDINARY_API_SECRET'
-        type: SECRET
+    - build_command: npm run build
+      environment_slug: node-js
+      git:
+        branch: main
+        repo_clone_url: https://github.com/annacjy/goodeed-app.git
+      name: goodeed-app
+      envs:
+        - key: APP_URL
+          value: ${goodeed-app.APP_URL}
+        - key: MONGO_DB_URI
+          value: 'YOUR_MONGO_DB_URI'
+          type: SECRET
+        - key: BCRYPT_SALT_ROUNDS
+          value: 'YOUR_BCRYPT_SALT_ROUNDS'
+        - key: JWT_SECRET_KEY
+          value: 'YOUR_JWT_SECRET_KEY'
+          type: SECRET
+        - key: GOOGLE_MAPS_API_KEY
+          value: 'YOUR_GOOGLE_MAPS_API_KEY'
+          type: SECRET
+        - key: CLOUDINARY_CLOUD_NAME
+          value: 'YOUR_CLOUDINARY_CLOUD_NAME'
+        - key: CLOUDINARY_API_KEY
+          value: 'YOUR_CLOUDINARY_API_KEY'
+          type: SECRET
+        - key: CLOUDINARY_API_SECRET
+          value: 'YOUR_CLOUDINARY_API_SECRET'
+          type: SECRET
